@@ -160,12 +160,13 @@
     border: 1px solid var(--border);
   }
   .featured-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.12); }
+  .featured-img img { width: 100%; height: 100%; object-fit: cover; }
   .featured-img {
     background: linear-gradient(135deg, #3a3a5c 0%, #d4516a 100%);
     min-height: 260px;
     display: flex; align-items: flex-end;
     padding: 24px;
-    position: relative;
+    position: relative; overflow: hidden;
   }
   .featured-img-overlay {
     font-size: 72px; position: absolute; top: 50%; left: 50%;
@@ -204,11 +205,12 @@
     transition: box-shadow 0.2s, transform 0.15s;
   }
   .article-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .article-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .article-thumb {
     height: 160px;
     display: flex; align-items: center; justify-content: center;
     font-size: 48px;
-    position: relative;
+    position: relative; overflow: hidden;
   }
   .article-thumb-text {
     font-size: 48px; opacity: 0.8;
@@ -240,6 +242,7 @@
     font-size: 80px;
     margin-left: 24px; margin-right: 24px;
   }
+  .article-cover img { width: 100%; height: 100%; object-fit: cover; }
   .article-content {
     max-width: 700px; margin: 32px auto 60px;
     padding: 0 24px;
@@ -330,8 +333,37 @@
     margin-top: 40px;
   }
 
-  /* ── no-results ── */
-  .no-results { text-align: center; padding: 60px 0; color: var(--text3); font-size: 14px; }
+  /* Admin password lock overlay */
+  #admin-lock-overlay {
+    display: none; position: fixed; inset: 0; z-index: 650;
+    background: rgba(0,0,0,0.6);
+    align-items: center; justify-content: center;
+  }
+  #admin-lock-overlay.open { display: flex; }
+  .admin-lock-box {
+    background: var(--surface); border-radius: 16px;
+    padding: 32px; width: 90%; max-width: 340px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .admin-lock-box h3 { font-size: 18px; margin-bottom: 6px; color: var(--text); }
+  .admin-lock-box p { font-size: 13px; color: var(--text3); margin-bottom: 20px; }
+  .admin-lock-box .lock-icon { font-size: 40px; margin-bottom: 12px; }
+  #admin-pwd-input { margin-bottom: 12px; }
+
+  /* Image upload in editor */
+  .image-upload-area {
+    border: 2px dashed var(--border); border-radius: 8px;
+    padding: 16px; text-align: center; cursor: pointer;
+    transition: all 0.15s; margin-top: 8px;
+  }
+  .image-upload-area:hover { border-color: var(--accent); background: #fdf9f9; }
+  .image-upload-area input[type="file"] { display: none; }
+  .cover-preview-img { max-width: 100%; max-height: 160px; border-radius: 8px; margin-top: 8px; }
+  .cover-upload-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+
+  /* Image insert in content toolbar */
+  .editor-toolbar .btn-img-insert { background: #f0eee8; }
 
   /* ═══════════ ADMIN PANEL ═══════════ */
   /* 管理入口按钮（悬浮，仅本地可见） */
@@ -500,6 +532,7 @@
   #content-preview p { margin-bottom: 16px; }
   #content-preview blockquote { border-left: 3px solid var(--accent); padding: 10px 16px; margin: 18px 0; background: var(--surface2); border-radius: 0 6px 6px 0; font-style: italic; color: var(--text2); }
   #content-preview code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 13px; }
+  #content-preview img { max-width: 100%; border-radius: 8px; margin: 16px 0; }
   #content-preview pre { background: var(--accent2); color: #e8e6f0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 18px 0; font-size: 13px; }
   #content-preview pre code { background: none; color: inherit; }
 
@@ -625,8 +658,21 @@
   </div>
 </div>
 
+<!-- Admin Lock Overlay -->
+<div id="admin-lock-overlay">
+  <div class="admin-lock-box">
+    <div class="lock-icon">🔐</div>
+    <h3>管理面板</h3>
+    <p>请输入管理密码以访问</p>
+    <input type="password" class="form-input" id="admin-pwd-input" placeholder="输入管理密码" onkeydown="if(event.key==='Enter')checkAdminPwd()">
+    <button class="btn btn-primary" style="width:100%" onclick="checkAdminPwd()">解锁</button>
+    <p id="admin-lock-error" style="color:#e03;font-size:12px;margin-top:8px;display:none;">密码错误，请重试</p>
+    <button class="btn" style="margin-top:10px;font-size:12px" onclick="closeAdminLock()">取消</button>
+  </div>
+</div>
+
 <!-- Admin FAB -->
-<button id="admin-fab" onclick="openAdmin()" title="管理面板 (Ctrl+Shift+A)">✏️</button>
+<button id="admin-fab" onclick="tryOpenAdmin()" title="管理面板 (Ctrl+Shift+A)">✏️</button>
 
 <!-- Admin Overlay -->
 <div id="admin-overlay" onclick="handleAdminOverlayClick(event)">
@@ -722,6 +768,23 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label">封面图片</label>
+          <div class="image-upload-area" id="cover-upload-area" onclick="document.getElementById('cover-img-file').click()">
+            <input type="file" id="cover-img-file" accept="image/*" onchange="handleCoverUpload(this)">
+            <div style="font-size:13px;color:var(--text3);">
+              <span style="font-size:24px">📷</span><br>
+              点击上传封面图片，或拖拽图片到此处<br>
+              <span style="font-size:11px">支持 JPG/PNG/GIF，建议尺寸 780×300</span>
+            </div>
+            <img id="cover-preview" class="cover-preview-img" style="display:none">
+          </div>
+          <div class="cover-upload-actions" id="cover-upload-actions" style="display:none">
+            <button class="btn btn-sm" onclick="removeCoverImage()">🗑️ 移除图片</button>
+          </div>
+          <input type="hidden" id="f-cover-image" value="">
+        </div>
+
+        <div class="form-group">
           <label class="form-label">正文内容 *</label>
           <div class="editor-tabs">
             <button class="editor-tab-btn active" onclick="switchEditorTab('edit',this)">📝 编辑</button>
@@ -737,6 +800,11 @@
             <button class="btn btn-sm" onclick="insertTag('code')">代码</button>
             <button class="btn btn-sm" onclick="insertTag('pre')">代码块</button>
             <button class="btn btn-sm" onclick="insertTag('br')">换行</button>
+            <button class="btn btn-sm btn-img-insert" onclick="insertImageInContent()">🖼️ 插入图片</button>
+          </div>
+          <!-- Image insert input (hidden) -->
+          <div id="content-img-upload" style="display:none;margin-top:8px;">
+            <input type="file" id="content-img-file" accept="image/*" onchange="handleContentImageUpload(this)">
           </div>
           <div class="editor-wrap">
             <textarea id="article-editor" placeholder="在这里写正文 HTML，支持 h2/h3/p/blockquote/code/pre 等标签&#10;&#10;例：&#10;&lt;h2&gt;章节标题&lt;/h2&gt;&#10;&lt;p&gt;段落内容&lt;/p&gt;&#10;&lt;blockquote&gt;引用文字&lt;/blockquote&gt;"></textarea>
@@ -761,6 +829,15 @@
 
       <!-- ─── 博客设置 ─── -->
       <div id="admin-settings" class="admin-section">
+        <div class="setting-block">
+          <div class="setting-block-title">🔒 管理密码</div>
+          <div class="form-group">
+            <label class="form-label">设置管理密码</label>
+            <input type="password" class="form-input" id="s-admin-pwd" placeholder="设置管理密码（分享页面给他人时需密码才能进入管理）">
+            <p class="form-hint">留空则不需要密码即可进入管理面板。建议设置密码防止他人误操作。</p>
+          </div>
+        </div>
+
         <div class="setting-block">
           <div class="setting-block-title">🏷️ 博客基本信息</div>
           <div class="form-group">
@@ -1022,6 +1099,7 @@ const DEFAULT_ARTICLES = [
     tag: '游戏策划',
     color: ['#3a3a5c','#534AB7'],
     emoji: '🎮',
+    coverImage: '', // 自定义封面图片（base64或URL）
     date: '2026-05-15',
     readTime: '8 min',
     excerpt: '7个阶段的COMBO算法背后，藏着多少次推翻重来。从单纯的消除反馈到「装修爽感」的核心叙事，这条路比我想象的难走得多。',
@@ -1043,6 +1121,7 @@ const DEFAULT_ARTICLES = [
     tag: 'AI探索',
     color: ['#d4516a','#993556'],
     emoji: '🎬',
+    coverImage: '',
     date: '2026-05-10',
     readTime: '6 min',
     excerpt: '从剧本到分镜到视频生成，一条用AI工具串起来的短剧创作流水线。踩了很多坑，也找到了一些真正有用的方法。',
@@ -1055,6 +1134,7 @@ const DEFAULT_ARTICLES = [
     tag: '生活随想',
     color: ['#1D9E75','#0F6E56'],
     emoji: '🏞️',
+    coverImage: '',
     date: '2026-05-05',
     readTime: '4 min',
     excerpt: '五一去了贵阳和安顺，黄果树瀑布比我想象的更壮观。这篇文章记录了三天行程和几个很真实的感受。',
@@ -1085,7 +1165,8 @@ const DEFAULT_SETTINGS = {
   link1Label: '🐦 微博',
   link1Url: '',
   link2Label: '📹 B站',
-  link2Url: ''
+  link2Url: '',
+  adminPwd: '' // 管理密码
 };
 
 const EMOJI_OPTIONS = ['🎮','🎬','🏞️','🤖','🗺️','🇯🇵','💡','📚','🎵','🖥️','🌏','🧠','✍️','🔍','🏠','🎨','📦','🚀','🌸','⚡','🎯','💬','📊','🛠️'];
@@ -1150,9 +1231,11 @@ function saveSettings() {
     link1Label: document.getElementById('s-link1-label').value.trim(),
     link1Url: document.getElementById('s-link1-url').value.trim(),
     link2Label: document.getElementById('s-link2-label').value.trim(),
-    link2Url: document.getElementById('s-link2-url').value.trim()
+    link2Url: document.getElementById('s-link2-url').value.trim(),
+    adminPwd: document.getElementById('s-admin-pwd').value.trim()
   };
   localStorage.setItem('blog_settings', JSON.stringify(s));
+  SETTINGS = s; // 更新内存中的设置
   applySettings(s);
   showToast('设置已保存 ✓');
 }
@@ -1255,10 +1338,13 @@ function renderHome() {
 
   const fa = document.getElementById('featured-area');
   if (featured && currentTag === 'all') {
+    const bgStyle = featured.coverImage
+      ? `background-image:url(${featured.coverImage});background-size:cover;background-position:center;`
+      : `background:linear-gradient(135deg,${featured.color[0]},${featured.color[1]})`;
     fa.innerHTML = `
       <div class="featured-card" onclick="showArticle(${featured.id})">
-        <div class="featured-img" style="background:linear-gradient(135deg,${featured.color[0]},${featured.color[1]})">
-          <div class="featured-img-overlay">${featured.emoji}</div>
+        <div class="featured-img" style="${bgStyle}">
+          ${!featured.coverImage ? `<div class="featured-img-overlay">${featured.emoji}</div>` : ''}
           <span class="featured-img-badge">精选 · Featured</span>
         </div>
         <div class="featured-body">
@@ -1282,10 +1368,14 @@ function renderHome() {
     grid.innerHTML = '<div class="no-results">暂无该分类文章</div>';
     return;
   }
-  grid.innerHTML = list.map(a => `
+  grid.innerHTML = list.map(a => {
+    const bgStyle = a.coverImage
+      ? `background-image:url(${a.coverImage});background-size:cover;background-position:center;`
+      : `background:linear-gradient(135deg,${a.color[0]},${a.color[1]})`;
+    return `
     <div class="article-card" onclick="showArticle(${a.id})">
-      <div class="article-thumb" style="background:linear-gradient(135deg,${a.color[0]},${a.color[1]})">
-        <span class="article-thumb-text">${a.emoji}</span>
+      <div class="article-thumb" style="${bgStyle}">
+        ${!a.coverImage ? `<span class="article-thumb-text">${a.emoji}</span>` : ''}
       </div>
       <div class="article-body">
         <span class="article-tag">${a.tag}</span>
@@ -1293,7 +1383,8 @@ function renderHome() {
         <p class="article-excerpt">${a.excerpt}</p>
         <div class="article-meta"><span>${a.date}</span><span>${a.readTime}</span></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ════════════════════════════════════════
@@ -1311,16 +1402,28 @@ function showArticle(id) {
     <div class="article-header-meta">
       <span>${a.date}</span>
       <span>${a.readTime} 阅读</span>
-      ${a.tags.map(t => `<span style="background:#f0eee8;padding:2px 8px;border-radius:10px;font-size:11px;">${t}</span>`).join('')}
+      ${(a.tags||[]).map(t => `<span style="background:#f0eee8;padding:2px 8px;border-radius:10px;font-size:11px;">${t}</span>`).join('')}
     </div>`;
 
-  document.getElementById('article-cover').style.background = `linear-gradient(135deg,${a.color[0]},${a.color[1]})`;
-  document.getElementById('article-cover').innerHTML = `<span style="font-size:80px;opacity:0.8">${a.emoji}</span>`;
+  const coverEl = document.getElementById('article-cover');
+  if (a.coverImage) {
+    coverEl.style.background = 'none';
+    coverEl.innerHTML = `<img src="${a.coverImage}" alt="${a.title}">`;
+  } else {
+    coverEl.style.background = `linear-gradient(135deg,${a.color[0]},${a.color[1]})`;
+    coverEl.innerHTML = `<span style="font-size:80px;opacity:0.8">${a.emoji}</span>`;
+  }
 
   document.getElementById('article-content').innerHTML = a.content + `
-    <div class="article-tags">${a.tags.map(t => `<span class="article-tag-pill" onclick="filterTag('${t}')">${t}</span>`).join('')}</div>`;
+    <div class="article-tags">${(a.tags||[]).map(t => `<span class="article-tag-pill" onclick="filterTag('${t}')">${t}</span>`).join('')}</div>`;
 
-  document.getElementById('edit-article-btn').style.display = 'inline-flex';
+  // 如果有管理密码且已解锁，显示编辑按钮
+  const editBtn = document.getElementById('edit-article-btn');
+  if (SETTINGS.adminPwd && !isAdminUnlocked) {
+    editBtn.style.display = 'none';
+  } else {
+    editBtn.style.display = 'inline-flex';
+  }
   showPage('article', null, true);
   window.scrollTo(0, 0);
 }
@@ -1451,6 +1554,46 @@ function showToast(msg) {
 }
 
 // ════════════════════════════════════════
+//  ADMIN PASSWORD PROTECTION
+// ════════════════════════════════════════
+let isAdminUnlocked = false;
+
+function tryOpenAdmin() {
+  if (SETTINGS.adminPwd && SETTINGS.adminPwd.length > 0) {
+    // 需要密码
+    if (isAdminUnlocked) {
+      openAdmin();
+    } else {
+      document.getElementById('admin-lock-overlay').classList.add('open');
+      document.getElementById('admin-pwd-input').value = '';
+      document.getElementById('admin-lock-error').style.display = 'none';
+      setTimeout(() => document.getElementById('admin-pwd-input').focus(), 50);
+    }
+  } else {
+    // 不需要密码
+    isAdminUnlocked = true;
+    openAdmin();
+  }
+}
+
+function checkAdminPwd() {
+  const pwd = document.getElementById('admin-pwd-input').value;
+  if (pwd === SETTINGS.adminPwd) {
+    isAdminUnlocked = true;
+    document.getElementById('admin-lock-overlay').classList.remove('open');
+    openAdmin();
+  } else {
+    document.getElementById('admin-lock-error').style.display = 'block';
+    document.getElementById('admin-pwd-input').value = '';
+    document.getElementById('admin-pwd-input').focus();
+  }
+}
+
+function closeAdminLock() {
+  document.getElementById('admin-lock-overlay').classList.remove('open');
+}
+
+// ════════════════════════════════════════
 //  ADMIN PANEL
 // ════════════════════════════════════════
 function openAdmin() {
@@ -1526,6 +1669,8 @@ function clearArticleForm() {
   // deselect emoji/color
   document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
   document.querySelectorAll('.color-preset').forEach(c => c.classList.remove('selected'));
+  // 清除封面图片
+  loadCoverImage('');
 }
 
 function cancelEdit() {
@@ -1558,6 +1703,8 @@ function editArticle(id) {
   document.querySelectorAll('.emoji-opt').forEach(e => {
     e.classList.toggle('selected', e.dataset.emoji === a.emoji);
   });
+  // 加载封面图片
+  loadCoverImage(a.coverImage || '');
   switchAdminTab('write', document.querySelectorAll('.admin-tab')[1]);
 }
 
@@ -1585,6 +1732,7 @@ function saveArticle() {
     tag,
     color: [document.getElementById('f-color1').value, document.getElementById('f-color2').value],
     emoji: document.getElementById('f-emoji').value.trim() || '✍️',
+    coverImage: document.getElementById('f-cover-image').value || '', // 封面图片
     date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
     readTime: document.getElementById('f-readtime').value.trim() || '5 min',
     excerpt,
@@ -1831,6 +1979,7 @@ function loadSettingsForm() {
   document.getElementById('s-link1-url').value = s.link1Url || '';
   document.getElementById('s-link2-label').value = s.link2Label || '';
   document.getElementById('s-link2-url').value = s.link2Url || '';
+  document.getElementById('s-admin-pwd').value = s.adminPwd || '';
 }
 
 // ─── 备份导出 ───
@@ -1941,6 +2090,7 @@ function switchEditorTab(mode, el) {
   const editor = document.getElementById('article-editor');
   const preview = document.getElementById('content-preview');
   if (mode === 'preview') {
+    // 内容预览：直接渲染HTML（包含图片）
     preview.innerHTML = editor.value || '<span style="color:var(--text3)">暂无内容</span>';
     editor.style.display = 'none';
     preview.classList.add('show');
@@ -1950,7 +2100,71 @@ function switchEditorTab(mode, el) {
   }
 }
 
-function insertTag(tag) {
+// ─── 封面图片上传 ───
+function handleCoverUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    document.getElementById('f-cover-image').value = base64;
+    const preview = document.getElementById('cover-preview');
+    preview.src = base64;
+    preview.style.display = 'block';
+    document.getElementById('cover-upload-actions').style.display = 'flex';
+    // 隐藏上传提示文字
+    const areaText = document.querySelector('#cover-upload-area > div');
+    if (areaText) areaText.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+  input.value = ''; // 允许重复选择同一文件
+}
+
+function removeCoverImage() {
+  document.getElementById('f-cover-image').value = '';
+  document.getElementById('cover-preview').src = '';
+  document.getElementById('cover-preview').style.display = 'none';
+  document.getElementById('cover-upload-actions').style.display = 'none';
+  const areaText = document.querySelector('#cover-upload-area > div');
+  if (areaText) areaText.style.display = 'block';
+}
+
+function loadCoverImage(base64) {
+  document.getElementById('f-cover-image').value = base64;
+  const preview = document.getElementById('cover-preview');
+  const areaText = document.querySelector('#cover-upload-area > div');
+  if (base64) {
+    preview.src = base64;
+    preview.style.display = 'block';
+    document.getElementById('cover-upload-actions').style.display = 'flex';
+    if (areaText) areaText.style.display = 'none';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    document.getElementById('cover-upload-actions').style.display = 'none';
+    if (areaText) areaText.style.display = 'block';
+  }
+}
+
+// ─── 内容图片插入 ───
+function insertImageInContent() {
+  document.getElementById('content-img-file').click();
+}
+
+function handleContentImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    insertTag('img', base64);
+    showToast('图片已插入 ✓');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function insertTag(tag, extra) {
   const ta = document.getElementById('article-editor');
   const start = ta.selectionStart, end = ta.selectionEnd;
   const selected = ta.value.slice(start, end);
@@ -1959,6 +2173,8 @@ function insertTag(tag) {
     insert = '<br>\n';
   } else if (tag === 'pre') {
     insert = selected ? `<pre><code>${selected}</code></pre>` : '<pre><code>// 代码内容</code></pre>';
+  } else if (tag === 'img') {
+    insert = `<img src="${extra}" alt="图片" style="max-width:100%;border-radius:8px;margin:16px 0;">`;
   } else {
     insert = selected ? `<${tag}>${selected}</${tag}>` : `<${tag}></${tag}>`;
   }
