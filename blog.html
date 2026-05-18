@@ -1754,6 +1754,10 @@ function saveArticle() {
   }
 
   saveArticles(ARTICLES);
+  // 保存后清空 sessionStorage 图片缓存（已嵌入 content，无需再存）
+  try { sessionStorage.removeItem('blog_images'); } catch(e) {}
+  // 清理旧 localStorage 残留
+  try { localStorage.removeItem('blog_images'); } catch(e) {}
   buildTagBar();
   renderHome();
   renderArchive();
@@ -2151,16 +2155,17 @@ function loadCoverImage(base64) {
 
 // ─── 内容图片插入 ───
 // ─── 文章图片占位符系统 ───
-// 编辑器内用 [IMG:uuid] 短占位符，存储时/展示时还原为 <img> 标签
+// 用 sessionStorage 替代 localStorage（5MB上限，但可随时清空重置，避免爆满）
+// 编辑器内用 [📷 id] 短占位符，存储时/展示时还原为完整 <img> 标签
 function getImageStore() {
-  try { return JSON.parse(localStorage.getItem('blog_images') || '{}'); } catch { return {}; }
+  try { return JSON.parse(sessionStorage.getItem('blog_images') || '{}'); } catch { return {}; }
 }
 function setImageStore(imgs) {
-  localStorage.setItem('blog_images', JSON.stringify(imgs));
+  sessionStorage.setItem('blog_images', JSON.stringify(imgs));
 }
-// 将 textarea 内容中的 [IMG:uuid] 占位符还原为完整 <img> 标签
+// 将 textarea 内容中的 [📷 id] 占位符还原为完整 <img> 标签
 function restoreImages(html) {
-  return html.replace(/\[IMG:([\w-]+)\]/g, (_, id) => {
+  return html.replace(/\[📷 ([\w-]+)\]/g, (_, id) => {
     const imgs = getImageStore();
     if (imgs[id]) {
       return `<img src="${imgs[id]}" alt="图片" style="max-width:100%;border-radius:8px;margin:16px 0;">`;
@@ -2191,7 +2196,7 @@ function editorifyContent(content) {
       imgs[found] = src;
       changed = true;
     }
-    return `[IMG:${found}]`;
+    return `[📷 ${found}]`;
   });
   if (changed) setImageStore(imgs);
   return step2;
@@ -2199,7 +2204,9 @@ function editorifyContent(content) {
 function convertImagesToPlaceholders(html) { return editorifyContent(html); }
 
 function insertImageInContent() {
-  document.getElementById('content-img-file').click();
+  const input = document.getElementById('content-img-file');
+  console.log('insertImageInContent called, input found:', !!input);
+  input.click();
 }
 
 function handleContentImageUpload(input) {
@@ -2213,8 +2220,13 @@ function handleContentImageUpload(input) {
     imgs[id] = base64;
     setImageStore(imgs);
     // 插入短占位符，不再是超长 base64
+    const placeholder = `[📷 ${id}]`;
+    console.log('inserting placeholder:', placeholder);
     insertTag('IMG', id);
-    showToast('图片已插入（占位符模式）✓');
+    showToast('图片已插入 ✓');
+    // 确认插入成功
+    const ta = document.getElementById('article-editor');
+    console.log('textarea content after insert:', ta.value.slice(-60));
   };
   reader.readAsDataURL(file);
   input.value = '';
@@ -2222,6 +2234,7 @@ function handleContentImageUpload(input) {
 
 function insertTag(tag, extra) {
   const ta = document.getElementById('article-editor');
+  if (!ta) { console.error('article-editor not found!'); return; }
   const start = ta.selectionStart, end = ta.selectionEnd;
   const selected = ta.value.slice(start, end);
   let insert = '';
@@ -2230,8 +2243,8 @@ function insertTag(tag, extra) {
   } else if (tag === 'pre') {
     insert = selected ? `<pre><code>${selected}</code></pre>` : '<pre><code>// 代码内容</code></pre>';
   } else if (tag === 'IMG') {
-    // 插入短占位符 [IMG:id]，还原时 restoreImages() 会替换为完整 <img> 标签
-    insert = `[IMG:${extra}]`;
+    // 插入短占位符 [📷 id]，还原时 restoreImages() 会替换为完整 <img> 标签
+    insert = `[📷 ${extra}]`;
   } else {
     insert = selected ? `<${tag}>${selected}</${tag}>` : `<${tag}></${tag}>`;
   }
