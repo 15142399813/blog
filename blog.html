@@ -1463,8 +1463,14 @@ function showArticle(id) {
     coverEl.innerHTML = `<span style="font-size:80px;opacity:0.8">${a.emoji}</span>`;
   }
 
-  document.getElementById('article-content').innerHTML = restoreImages(a.content) + `
+  document.getElementById('article-content').innerHTML = restoreImages(a.content, a.id) + `
     <div class="article-tags">${(a.tags||[]).map(t => `<span class="article-tag-pill" onclick="filterTag('${t}')">${t}</span>`).join('')}</div>`;
+
+  // 将文章对应的持久化图片数据注入 sessionStorage，供 restoreImages 读取
+  const storedImgs = getImageStore(a.id);
+  if (Object.keys(storedImgs).length > 0) {
+    try { sessionStorage.setItem('blog_images', JSON.stringify(storedImgs)); } catch(e) {}
+  }
 
   // 如果有管理密码且已解锁，显示编辑按钮
   const editBtn = document.getElementById('edit-article-btn');
@@ -1732,6 +1738,11 @@ function editArticle(id) {
   const a = ARTICLES.find(x => x.id === id);
   if (!a) return;
   editingArticleId = id;
+  // 将持久化的图片数据注入 sessionStorage，供 editorifyContent 读取
+  const storedImgs = getImageStore(id);
+  if (Object.keys(storedImgs).length > 0) {
+    try { sessionStorage.setItem('blog_images', JSON.stringify(storedImgs)); } catch(e) {}
+  }
   document.getElementById('editor-mode-label').textContent = '✏️ 编辑文章';
   document.getElementById('f-title').value = a.title;
   document.getElementById('f-tag').value = a.tag;
@@ -1767,8 +1778,7 @@ function saveArticle() {
   const tag = document.getElementById('f-tag').value.trim();
   const excerpt = document.getElementById('f-excerpt').value.trim();
   const rawContent = document.getElementById('article-editor').value.trim();
-  const content = restoreImages(rawContent); // 占位符 → 完整 <img> 标签
-  if (!title || !tag || !excerpt || !content) {
+  if (!title || !tag || !excerpt || !rawContent) {
     showToast('请填写必填项（标题、分类、摘要、正文）');
     return;
   }
@@ -1782,11 +1792,11 @@ function saveArticle() {
     tag,
     color: [document.getElementById('f-color1').value, document.getElementById('f-color2').value],
     emoji: document.getElementById('f-emoji').value.trim() || '✍️',
-    coverImage: document.getElementById('f-cover-image').value || '', // 封面图片
+    coverImage: document.getElementById('f-cover-image').value || '',
     date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
     readTime: document.getElementById('f-readtime').value.trim() || '5 min',
     excerpt,
-    content,
+    content: rawContent, // 直接存占位符 [📷 id]，由 restoreImages() 在展示时还原为 <img>
     tags,
     featured: document.getElementById('f-featured').value === '1'
   };
@@ -1801,10 +1811,11 @@ function saveArticle() {
   }
 
   try { saveArticles(ARTICLES); } catch(e) { console.error('保存失败:', e); showToast('保存失败，请重试'); return; }
-  // 保存后清空 sessionStorage 图片缓存（图片已嵌入 content，无需再存）
+  // 图片数据持久化到 localStorage（按文章ID），跨 session 仍可读
+  const imgs = getImageStore();
+  if (Object.keys(imgs).length > 0) persistImageStore(article.id, imgs);
+  // 清空 sessionStorage（不再需要，图片已存 localStorage）
   try { sessionStorage.removeItem('blog_images'); } catch(e) {}
-  // 清理旧 localStorage 残留
-  try { localStorage.removeItem('blog_images'); } catch(e) {}
   buildTagBar();
   renderHome();
   renderArchive();
@@ -2008,10 +2019,9 @@ function confirmDeleteArticle(id) {
   showConfirm('确认删除？', `「${a.title}」将被永久删除，无法恢复。`, () => {
     ARTICLES = ARTICLES.filter(x => x.id !== id);
   try { saveArticles(ARTICLES); } catch(e) { console.error('保存失败:', e); showToast('保存失败，请重试'); return; }
-  // 保存后清空 sessionStorage 图片缓存（图片已嵌入 content，无需再存）
+  // 清理该文章的持久化图片
+  try { localStorage.removeItem('blog_images_' + id); } catch(e) {}
   try { sessionStorage.removeItem('blog_images'); } catch(e) {}
-  // 清理旧 localStorage 残留
-  try { localStorage.removeItem('blog_images'); } catch(e) {}
   buildTagBar();
     renderHome();
     renderArchive();
@@ -2149,7 +2159,7 @@ function switchEditorTab(mode, el) {
   const preview = document.getElementById('content-preview');
   if (mode === 'preview') {
     // 内容预览：直接渲染HTML（包含图片）
-    preview.innerHTML = restoreImages(editor.value) || '<span style="color:var(--text3)">暂无内容</span>';
+    preview.innerHTML = restoreImages(editor.value, editingArticleId) || '<span style="color:var(--text3)">暂无内容</span>';
     editor.style.display = 'none';
     preview.classList.add('show');
   } else {
@@ -2206,27 +2216,41 @@ function loadCoverImage(base64) {
 
 // ─── 内容图片插入 ───
 // ─── 文章图片占位符系统 ───
-// 用 sessionStorage 替代 localStorage（5MB上限，但可随时清空重置，避免爆满）
-// 编辑器内用 [📷 id] 短占位符，存储时/展示时还原为完整 <img> 标签
-function getImageStore() {
+// sessionStorage：编辑器当前会话（随时可清空）
+// localStorage[blog_images_<id>]：持久化到文章维度，重启 session 也保留
+// restoreImages 时优先从 localStorage 读，读不到才读 sessionStorage
+function getImageStore(articleId) {
+  // 先尝试 localStorage（持久化）
+  if (articleId) {
+    try {
+      const fromLocal = localStorage.getItem('blog_images_' + articleId);
+      if (fromLocal) return JSON.parse(fromLocal);
+    } catch(e) {}
+  }
+  // 回退 sessionStorage（当前会话）
   try { return JSON.parse(sessionStorage.getItem('blog_images') || '{}'); } catch { return {}; }
 }
 function setImageStore(imgs) {
   sessionStorage.setItem('blog_images', JSON.stringify(imgs));
 }
+function persistImageStore(articleId, imgs) {
+  if (!articleId) return;
+  try { localStorage.setItem('blog_images_' + articleId, JSON.stringify(imgs)); } catch(e) {}
+}
 // 将 textarea 内容中的 [📷 id] 占位符还原为完整 <img> 标签
-function restoreImages(html) {
+// articleId 用于从 localStorage 持久化读取（跨 session 有效）
+function restoreImages(html, articleId) {
   if (!html) return html;
   try {
     return html.replace(/\[📷 ([\w-]+)\]/g, (_, id) => {
-      const imgs = getImageStore();
+      const imgs = getImageStore(articleId);
       if (imgs[id]) {
         return `<img src="${imgs[id]}" alt="图片" style="max-width:100%;border-radius:8px;margin:16px 0;">`;
       }
       return `<span style="color:#e55;font-size:12px;">[图片已失效]</span>`;
     });
   } catch(e) {
-    return html; // 出错时保留原内容
+    return html;
   }
 }
 
