@@ -333,6 +333,224 @@
   /* ── no-results ── */
   .no-results { text-align: center; padding: 60px 0; color: var(--text3); font-size: 14px; }
 
+  /* ═══════════ ADMIN PANEL ═══════════ */
+  /* 管理入口按钮（悬浮，仅本地可见） */
+  #admin-fab {
+    position: fixed; bottom: 28px; right: 28px; z-index: 500;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--accent2); color: #fff;
+    border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+    font-size: 20px; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+  }
+  #admin-fab:hover { transform: scale(1.1); background: var(--accent); }
+
+  /* 管理面板遮罩 */
+  #admin-overlay {
+    display: none; position: fixed; inset: 0; z-index: 600;
+    background: rgba(0,0,0,0.5);
+  }
+  #admin-overlay.open { display: flex; }
+
+  /* 管理面板主体 */
+  #admin-panel {
+    background: var(--surface);
+    width: 100%; max-width: 800px;
+    height: 100vh; overflow-y: auto;
+    margin-left: auto;
+    padding: 0;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column;
+  }
+  .admin-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .admin-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .admin-tabs {
+    display: flex; gap: 4px; padding: 12px 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-tab {
+    padding: 8px 16px; border-radius: 8px 8px 0 0;
+    font-size: 13px; cursor: pointer; border: none; background: none;
+    color: var(--text2); border-bottom: 2px solid transparent;
+    transition: all 0.15s; font-family: var(--font-sans);
+  }
+  .admin-tab:hover { color: var(--text); }
+  .admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .admin-body { padding: 24px; flex: 1; }
+  .admin-section { display: none; }
+  .admin-section.active { display: block; }
+
+  /* 文章列表 */
+  .admin-article-list { display: flex; flex-direction: column; gap: 10px; }
+  .admin-article-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+    transition: border-color 0.15s;
+  }
+  .admin-article-item:hover { border-color: var(--accent); }
+  .admin-article-emoji { font-size: 24px; flex-shrink: 0; }
+  .admin-article-info { flex: 1; min-width: 0; }
+  .admin-article-title { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-article-meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .admin-article-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  /* 按钮通用 */
+  .btn {
+    padding: 6px 14px; border-radius: 8px; font-size: 13px;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); transition: all 0.15s; font-family: var(--font-sans);
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #c03d5a; border-color: #c03d5a; color: #fff; }
+  .btn-danger { color: #e03; border-color: #fcc; }
+  .btn-danger:hover { background: #fff0f0; border-color: #e03; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-icon {
+    width: 30px; height: 30px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+  }
+
+  /* 表单通用 */
+  .form-group { margin-bottom: 18px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; display: block; margin-bottom: 6px; text-transform: uppercase; }
+  .form-input {
+    width: 100%; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg);
+    font-size: 14px; color: var(--text); outline: none;
+    font-family: var(--font-sans); transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); background: var(--surface); }
+  .form-textarea {
+    width: 100%; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg);
+    font-size: 14px; color: var(--text); outline: none;
+    font-family: var(--font-sans); resize: vertical; line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  .form-textarea:focus { border-color: var(--accent); background: var(--surface); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* 颜色选择器区域 */
+  .color-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .color-preset {
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+  }
+  .color-preset:hover, .color-preset.selected { border-color: var(--text); transform: scale(1.1); }
+
+  /* Emoji 选择 */
+  .emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .emoji-opt {
+    width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .emoji-opt:hover, .emoji-opt.selected { background: #fce9ec; border-color: var(--accent); }
+
+  /* 编辑器工具栏 */
+  .editor-toolbar {
+    display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 10px;
+    border: 1px solid var(--border); border-bottom: none;
+    border-radius: 8px 8px 0 0; background: var(--bg);
+  }
+  .editor-toolbar .btn { font-size: 12px; padding: 3px 8px; border-radius: 5px; }
+  .editor-wrap { position: relative; }
+  #article-editor {
+    width: 100%; min-height: 280px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+    font-size: 14px; color: var(--text); outline: none;
+    font-family: var(--font-sans); resize: vertical; line-height: 1.7;
+    background: var(--bg); transition: border-color 0.15s;
+  }
+  #article-editor:focus { border-color: var(--accent); background: var(--surface); }
+
+  /* 编辑器/预览切换 */
+  .editor-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .editor-tab-btn {
+    padding: 4px 12px; border-radius: 6px; font-size: 12px;
+    cursor: pointer; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text2); transition: all 0.15s; font-family: var(--font-sans);
+  }
+  .editor-tab-btn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  #content-preview {
+    display: none; min-height: 280px; padding: 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 15px; line-height: 1.85; color: var(--text);
+    background: var(--surface);
+    overflow-y: auto;
+  }
+  #content-preview.show { display: block; }
+  #content-preview h2 { font-family: var(--font-serif); font-size: 20px; margin: 28px 0 12px; }
+  #content-preview h3 { font-size: 16px; font-weight: 600; margin: 22px 0 8px; }
+  #content-preview p { margin-bottom: 16px; }
+  #content-preview blockquote { border-left: 3px solid var(--accent); padding: 10px 16px; margin: 18px 0; background: var(--surface2); border-radius: 0 6px 6px 0; font-style: italic; color: var(--text2); }
+  #content-preview code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 13px; }
+  #content-preview pre { background: var(--accent2); color: #e8e6f0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 18px 0; font-size: 13px; }
+  #content-preview pre code { background: none; color: inherit; }
+
+  /* 分隔线 */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* 设置页 */
+  .setting-block {
+    background: var(--bg); border-radius: 10px; padding: 20px;
+    border: 1px solid var(--border); margin-bottom: 16px;
+  }
+  .setting-block-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--accent2); color: #fff; padding: 10px 22px;
+    border-radius: 20px; font-size: 13px; z-index: 9999;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 新建按钮 */
+  .admin-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .admin-top-bar h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+
+  /* 确认对话框 */
+  #confirm-overlay {
+    display: none; position: fixed; inset: 0; z-index: 900;
+    background: rgba(0,0,0,0.5);
+    align-items: center; justify-content: center;
+  }
+  #confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: var(--surface); border-radius: 14px;
+    padding: 28px 32px; max-width: 340px; width: 90%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+  .confirm-box h4 { font-size: 16px; margin-bottom: 10px; color: var(--text); }
+  .confirm-box p { font-size: 13px; color: var(--text2); margin-bottom: 22px; }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+  /* 空状态 */
+  .admin-empty { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+  .admin-empty .emoji { font-size: 36px; margin-bottom: 10px; }
+
+  /* 备份区域 */
+  .backup-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
   @media (max-width: 640px) {
     .featured-card { grid-template-columns: 1fr; }
     .featured-img { min-height: 180px; }
@@ -340,12 +558,15 @@
     .container { padding: 0 16px; }
     .hero { padding: 32px 0 24px; }
     .articles-grid { grid-template-columns: 1fr; }
+    .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    #admin-panel { max-width: 100%; }
   }
 </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<div id="toast"></div>
 
 <!-- Search Overlay -->
 <div id="search-overlay" onclick="closeSearch(event)">
@@ -358,9 +579,258 @@
   </div>
 </div>
 
+<!-- Admin FAB -->
+<button id="admin-fab" onclick="openAdmin()" title="管理面板 (Ctrl+Shift+A)">✏️</button>
+
+<!-- Admin Overlay -->
+<div id="admin-overlay" onclick="handleAdminOverlayClick(event)">
+  <div id="admin-panel" onclick="event.stopPropagation()">
+    <div class="admin-header">
+      <span class="admin-title">✦ 博客管理</span>
+      <button class="btn btn-sm" onclick="closeAdmin()">✕ 关闭</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('articles',this)">📄 文章管理</button>
+      <button class="admin-tab" onclick="switchAdminTab('write',this)">✍️ 写文章</button>
+      <button class="admin-tab" onclick="switchAdminTab('settings',this)">⚙️ 博客设置</button>
+      <button class="admin-tab" onclick="switchAdminTab('backup',this)">💾 备份导出</button>
+    </div>
+    <div class="admin-body">
+
+      <!-- ─── 文章列表 ─── -->
+      <div id="admin-articles" class="admin-section active">
+        <div class="admin-top-bar">
+          <h3>所有文章 (<span id="article-count">0</span>)</h3>
+          <button class="btn btn-primary" onclick="newArticle()">＋ 新建文章</button>
+        </div>
+        <div class="admin-article-list" id="admin-article-list"></div>
+      </div>
+
+      <!-- ─── 写文章 ─── -->
+      <div id="admin-write" class="admin-section">
+        <div class="admin-top-bar">
+          <h3 id="editor-mode-label">✍️ 新建文章</h3>
+          <button class="btn btn-sm" onclick="cancelEdit()">取消</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">文章标题 *</label>
+          <input type="text" class="form-input" id="f-title" placeholder="给你的文章起一个好标题">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">分类 (tag) *</label>
+            <input type="text" class="form-input" id="f-tag" placeholder="如：游戏策划、生活随想" list="tag-suggestions">
+            <datalist id="tag-suggestions"></datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">阅读时长</label>
+            <input type="text" class="form-input" id="f-readtime" placeholder="如：5 min" value="5 min">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">发布日期</label>
+            <input type="date" class="form-input" id="f-date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">设为精选推荐</label>
+            <select class="form-input" id="f-featured">
+              <option value="0">否</option>
+              <option value="1">是（首页大图展示）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">摘要 *</label>
+          <textarea class="form-textarea" id="f-excerpt" rows="2" placeholder="一两句话描述文章核心，显示在卡片上"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">标签 (多个用逗号分隔)</label>
+          <input type="text" class="form-input" id="f-tags" placeholder="如：游戏策划,三消,Unity">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">封面 Emoji</label>
+          <input type="text" class="form-input" id="f-emoji" placeholder="粘贴一个 Emoji，如 🎮" style="font-size:20px;max-width:100px">
+          <div class="emoji-grid" id="emoji-grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">封面渐变色</label>
+          <div class="form-row">
+            <div>
+              <label class="form-label" style="font-size:11px">起始色</label>
+              <input type="color" class="form-input" id="f-color1" value="#3a3a5c" style="height:40px;padding:4px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-size:11px">结束色</label>
+              <input type="color" class="form-input" id="f-color2" value="#534AB7" style="height:40px;padding:4px;">
+            </div>
+          </div>
+          <div class="color-presets" id="color-presets"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">正文内容 *</label>
+          <div class="editor-tabs">
+            <button class="editor-tab-btn active" onclick="switchEditorTab('edit',this)">📝 编辑</button>
+            <button class="editor-tab-btn" onclick="switchEditorTab('preview',this)">👁 预览</button>
+          </div>
+          <div class="editor-toolbar">
+            <button class="btn btn-sm" onclick="insertTag('h2')">H2</button>
+            <button class="btn btn-sm" onclick="insertTag('h3')">H3</button>
+            <button class="btn btn-sm" onclick="insertTag('p')">段落</button>
+            <button class="btn btn-sm" onclick="insertTag('blockquote')">引用</button>
+            <button class="btn btn-sm" onclick="insertTag('strong')"><b>加粗</b></button>
+            <button class="btn btn-sm" onclick="insertTag('em')"><i>斜体</i></button>
+            <button class="btn btn-sm" onclick="insertTag('code')">代码</button>
+            <button class="btn btn-sm" onclick="insertTag('pre')">代码块</button>
+            <button class="btn btn-sm" onclick="insertTag('br')">换行</button>
+          </div>
+          <div class="editor-wrap">
+            <textarea id="article-editor" placeholder="在这里写正文 HTML，支持 h2/h3/p/blockquote/code/pre 等标签&#10;&#10;例：&#10;&lt;h2&gt;章节标题&lt;/h2&gt;&#10;&lt;p&gt;段落内容&lt;/p&gt;&#10;&lt;blockquote&gt;引用文字&lt;/blockquote&gt;"></textarea>
+            <div id="content-preview"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <button class="btn" onclick="cancelEdit()">取消</button>
+          <button class="btn btn-primary" onclick="saveArticle()">💾 保存文章</button>
+        </div>
+      </div>
+
+      <!-- ─── 博客设置 ─── -->
+      <div id="admin-settings" class="admin-section">
+        <div class="setting-block">
+          <div class="setting-block-title">🏷️ 博客基本信息</div>
+          <div class="form-group">
+            <label class="form-label">博客名称</label>
+            <input type="text" class="form-input" id="s-name" placeholder="如：碎碎念">
+          </div>
+          <div class="form-group">
+            <label class="form-label">首页标语 (Hero Title)</label>
+            <input type="text" class="form-input" id="s-hero-title" placeholder="记录思考、灵感与日常的杂货铺">
+          </div>
+          <div class="form-group">
+            <label class="form-label">首页描述</label>
+            <input type="text" class="form-input" id="s-hero-desc" placeholder="游戏策划 · 产品思维 · AI探索 · 生活随想">
+          </div>
+        </div>
+
+        <div class="setting-block">
+          <div class="setting-block-title">👤 关于我</div>
+          <div class="form-group">
+            <label class="form-label">头像 Emoji</label>
+            <input type="text" class="form-input" id="s-avatar" placeholder="如 ✦" style="font-size:20px;max-width:80px">
+          </div>
+          <div class="form-group">
+            <label class="form-label">名字/笔名</label>
+            <input type="text" class="form-input" id="s-author">
+          </div>
+          <div class="form-group">
+            <label class="form-label">一句话简介</label>
+            <input type="text" class="form-input" id="s-tagline" placeholder="00后产品人 · 游戏策划 · AI探索者">
+          </div>
+          <div class="form-group">
+            <label class="form-label">关于我 (段落1)</label>
+            <textarea class="form-textarea" id="s-bio1" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">关于我 (段落2)</label>
+            <textarea class="form-textarea" id="s-bio2" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">兴趣标签 (逗号分隔)</label>
+            <input type="text" class="form-input" id="s-interests" placeholder="游戏策划,产品设计,AI工具">
+          </div>
+        </div>
+
+        <div class="setting-block">
+          <div class="setting-block-title">🔗 联系方式</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">邮件链接</label>
+              <input type="text" class="form-input" id="s-link-email" placeholder="mailto:you@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">链接1 标题</label>
+              <input type="text" class="form-input" id="s-link1-label" placeholder="🐦 微博">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">链接1 URL</label>
+              <input type="text" class="form-input" id="s-link1-url" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">链接2 标题</label>
+              <input type="text" class="form-input" id="s-link2-label" placeholder="📹 B站">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">链接2 URL</label>
+            <input type="text" class="form-input" id="s-link2-url" placeholder="https://...">
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="saveSettings()">💾 保存设置</button>
+        </div>
+      </div>
+
+      <!-- ─── 备份导出 ─── -->
+      <div id="admin-backup" class="admin-section">
+        <div class="setting-block">
+          <div class="setting-block-title">📤 导出数据</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">将你的文章数据和博客设置导出为 JSON 文件，可用于备份或迁移。</p>
+          <div class="backup-actions">
+            <button class="btn btn-primary" onclick="exportData()">⬇️ 导出全部数据 (JSON)</button>
+            <button class="btn" onclick="exportArticlesOnly()">📄 仅导出文章</button>
+          </div>
+        </div>
+
+        <div class="setting-block">
+          <div class="setting-block-title">📥 导入数据</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">导入之前导出的 JSON 文件恢复数据。<strong>注意：导入会合并文章，不会清空已有数据。</strong></p>
+          <div class="backup-actions">
+            <label class="btn" style="cursor:pointer;">
+              📁 选择 JSON 文件导入
+              <input type="file" accept=".json" style="display:none" onchange="importData(this)">
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-block">
+          <div class="setting-block-title">🗑️ 危险操作</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">清除所有本地数据，恢复到初始示例文章状态。此操作不可撤销。</p>
+          <button class="btn btn-danger" onclick="confirmReset()">⚠️ 重置所有数据</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">确认删除？</h4>
+    <p id="confirm-msg">此操作不可撤销。</p>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirm-ok-btn">确认删除</button>
+    </div>
+  </div>
+</div>
+
 <!-- Nav -->
 <nav>
-  <span class="nav-brand" onclick="showPage('home')">✦ 碎碎念</span>
+  <span class="nav-brand" id="nav-brand" onclick="showPage('home')">✦ 碎碎念</span>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('home',this)">首页</button>
     <button class="nav-link" onclick="showPage('archive',this)">归档</button>
@@ -374,26 +844,23 @@
   <div class="container">
     <div class="hero">
       <div class="hero-label">— 个人博客</div>
-      <h1 class="hero-title">记录思考、灵感<br>与日常的杂货铺</h1>
-      <p class="hero-desc">游戏策划 · 产品思维 · AI探索 · 生活随想 — 什么都写，什么都想聊</p>
+      <h1 class="hero-title" id="hero-title">记录思考、灵感<br>与日常的杂货铺</h1>
+      <p class="hero-desc" id="hero-desc">游戏策划 · 产品思维 · AI探索 · 生活随想 — 什么都写，什么都想聊</p>
     </div>
-
-    <!-- tag bar -->
     <div class="tag-bar" id="tag-bar">
       <span class="tag-bar-label">筛选：</span>
     </div>
-
-    <!-- featured -->
     <div id="featured-area"></div>
-
-    <!-- grid -->
     <div class="articles-grid" id="articles-grid"></div>
   </div>
 </div>
 
 <!-- ═══ ARTICLE ═══ -->
 <div id="page-article" class="page">
-  <button class="back-btn" onclick="goBack()">← 返回</button>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:24px 24px 0;">
+    <button class="back-btn" style="margin:0" onclick="goBack()">← 返回</button>
+    <button class="btn btn-sm" id="edit-article-btn" onclick="editCurrentArticle()" style="display:none">✏️ 编辑此文章</button>
+  </div>
   <div class="article-header" id="article-header"></div>
   <div class="article-cover" id="article-cover"></div>
   <div class="article-content" id="article-content"></div>
@@ -414,50 +881,36 @@
 <div id="page-about" class="page">
   <div class="container">
     <div class="about-wrap">
-      <div class="about-avatar">✦</div>
-      <h2 class="about-name">碎碎念主人</h2>
-      <p class="about-tagline">00后产品人 · 游戏策划 · AI探索者</p>
-
+      <div class="about-avatar" id="about-avatar">✦</div>
+      <h2 class="about-name" id="about-name">碎碎念主人</h2>
+      <p class="about-tagline" id="about-tagline">00后产品人 · 游戏策划 · AI探索者</p>
       <div class="about-section">
         <div class="about-section-title">关于我</div>
-        <p class="about-bio">数字媒体技术专业出身，有游戏策划背景，现在关注产品设计、AI工具应用和独立游戏开发。喜欢把脑子里跑过的想法写下来，有时候是严肃的方法论，有时候是很蠢的感悟。</p>
+        <p class="about-bio" id="about-bio1">数字媒体技术专业出身，有游戏策划背景，现在关注产品设计、AI工具应用和独立游戏开发。喜欢把脑子里跑过的想法写下来，有时候是严肃的方法论，有时候是很蠢的感悟。</p>
         <br>
-        <p class="about-bio">正在开发一款三消3D手游，探索AI短剧制作，偶尔研究跨境电商。这个博客就是个杂货铺，欢迎随便逛。</p>
+        <p class="about-bio" id="about-bio2">正在开发一款三消3D手游，探索AI短剧制作，偶尔研究跨境电商。这个博客就是个杂货铺，欢迎随便逛。</p>
       </div>
-
       <div class="about-section">
         <div class="about-section-title">兴趣标签</div>
-        <div class="about-tags">
-          <span class="about-tag">游戏策划</span>
-          <span class="about-tag">产品设计</span>
-          <span class="about-tag">AI工具</span>
-          <span class="about-tag">独立游戏</span>
-          <span class="about-tag">短视频创作</span>
-          <span class="about-tag">日语学习</span>
-          <span class="about-tag">三消玩法</span>
-          <span class="about-tag">跨境电商</span>
-        </div>
+        <div class="about-tags" id="about-interests"></div>
       </div>
-
       <div class="about-section">
         <div class="about-section-title">联系方式</div>
-        <div class="about-links">
-          <a class="about-link-btn" href="#">📧 发邮件给我</a>
-          <a class="about-link-btn" href="#">🐦 微博</a>
-          <a class="about-link-btn" href="#">📹 B站</a>
-        </div>
+        <div class="about-links" id="about-links"></div>
       </div>
     </div>
   </div>
 </div>
 
 <footer>
-  <p>© 2026 碎碎念 · 用文字记录一切有趣的东西</p>
+  <p id="footer-text">© 2026 碎碎念 · 用文字记录一切有趣的东西</p>
 </footer>
 
 <script>
-// ═══════════════════════ DATA ═══════════════════════
-const ARTICLES = [
+// ════════════════════════════════════════
+//  DEFAULT DATA
+// ════════════════════════════════════════
+const DEFAULT_ARTICLES = [
   {
     id: 1,
     title: '三消3D手游的COMBO机制设计心路',
@@ -467,18 +920,7 @@ const ARTICLES = [
     date: '2026-05-15',
     readTime: '8 min',
     excerpt: '7个阶段的COMBO算法背后，藏着多少次推翻重来。从单纯的消除反馈到「装修爽感」的核心叙事，这条路比我想象的难走得多。',
-    content: `
-<h2>为什么要设计COMBO机制</h2>
-<p>大多数三消游戏的爽感来自视觉反馈的堆叠——消除动画越来越炫，音效越来越响，数字越来越大。但我们做的是装修题材，用户的心理模型更接近「完成一件事」而不是「打倒一个敌人」。</p>
-<p>所以从第一天开始，我就知道COMBO不能只是数字叠加，它必须和「装修进度」绑定起来，让玩家感受到「这个连击让我离完成一间屋子更近了」。</p>
-<blockquote>「爽感不是来自于消除了多少块，而是来自于空间在我手下一点一点变化。」——我在白板上写的第一句话</blockquote>
-<h2>7阶段算法的诞生</h2>
-<p>最初版本只有3个阶段：普通→激活→爆发。测试下来发现节奏太跳跃，玩家来不及体验中间的积累感就直接进入爆发，反而没有成就感。</p>
-<p>后来把中间拆细，加入了「预热」「蓄力」「高潮」「余韵」等阶段，才有了现在的7段结构。每个阶段的视觉、音效、掉落概率都不一样。</p>
-<h3>各阶段核心参数</h3>
-<p>阶段1-2是「普通消除」，主要建立节奏感；阶段3-4进入「激活区间」，开始有特殊道具加成；阶段5-6是真正的「爽感高峰」；阶段7是「终局爆发」，通常配合关卡结束触发。</p>
-<pre><code>// 简化的阶段判断逻辑
-function getComboStage(count) {
+    content: `<h2>为什么要设计COMBO机制</h2><p>大多数三消游戏的爽感来自视觉反馈的堆叠——消除动画越来越炫，音效越来越响，数字越来越大。但我们做的是装修题材，用户的心理模型更接近「完成一件事」而不是「打倒一个敌人」。</p><p>所以从第一天开始，我就知道COMBO不能只是数字叠加，它必须和「装修进度」绑定起来，让玩家感受到「这个连击让我离完成一间屋子更近了」。</p><blockquote>「爽感不是来自于消除了多少块，而是来自于空间在我手下一点一点变化。」——我在白板上写的第一句话</blockquote><h2>7阶段算法的诞生</h2><p>最初版本只有3个阶段：普通→激活→爆发。测试下来发现节奏太跳跃，玩家来不及体验中间的积累感就直接进入爆发，反而没有成就感。</p><pre><code>function getComboStage(count) {
   if (count < 3) return 1;
   if (count < 6) return 2;
   if (count < 10) return 3;
@@ -486,11 +928,7 @@ function getComboStage(count) {
   if (count < 21) return 5;
   if (count < 28) return 6;
   return 7;
-}</code></pre>
-<h2>踩过的坑</h2>
-<p>最大的失误是早期把COMBO计数和时间绑定——玩家手速快，COMBO就高，手速慢就断。这在测试中被立刻发现：休闲玩家觉得压力巨大，而高COMBO的体验对他们来说完全不可达。后来改成「同色系消除」的链式触发，和时间解绑，体验立刻顺了很多。</p>
-<p>另一个问题是「余韵阶段」太短，玩家在爽感高峰之后立刻回到普通状态，落差感太强。加长余韵并加入粒子特效的衰减动画之后，整体的满足感提升明显。</p>
-`,
+}</code></pre>`,
     tags: ['游戏策划', '三消', '机制设计', 'Unity'],
     featured: true
   },
@@ -503,20 +941,7 @@ function getComboStage(count) {
     date: '2026-05-10',
     readTime: '6 min',
     excerpt: '从剧本到分镜到视频生成，一条用AI工具串起来的短剧创作流水线。踩了很多坑，也找到了一些真正有用的方法。',
-    content: `
-<h2>为什么要做AI短剧</h2>
-<p>短剧赛道很热，但真正把AI工具用好、做出有质感内容的人并不多。大部分人要么停留在用AI写剧本、要么用图生图搞概念图，很少有人把整条链路跑通。</p>
-<p>我做这件事的起点是好奇心——AI生成的视频画面能不能配上一个真正有意思的故事，让人想看完？</p>
-<h2>工作流拆解</h2>
-<h3>第一步：剧本</h3>
-<p>剧本阶段其实AI帮不了太多，更准确地说：AI能快速生成骨架，但「爽点设计」和「每集结尾悬念」必须人来把控。女性向复仇题材有非常成熟的套路，但套路里的钩子要你自己埋，AI只是帮你把它写清楚。</p>
-<blockquote>一个好的短剧结尾不是「剧情转折」，而是「情绪高潮」——让观众带着一口气悬着去等下集。</blockquote>
-<h3>第二步：角色设定</h3>
-<p>角色一致性是AI视频最难的问题。我的方案是先用文生图跑出3-5张满意的角色参考图，锁定风格关键词，然后在后续所有生成任务中保持相同的提示词结构。</p>
-<p>冷艳美学的核心关键词我总结了一套模板：高光轮廓、低饱和冷色调、精确眼神描述（不能用抽象词）、面部微表情指定。</p>
-<h3>第三步：视频生成</h3>
-<p>目前测试了几个平台，即梦的图生视频效果在连贯性上比较稳定，适合需要角色出镜的场景；文生视频在大场景、空镜上表现更好。实际项目里两种结合用。</p>
-`,
+    content: `<h2>为什么要做AI短剧</h2><p>短剧赛道很热，但真正把AI工具用好、做出有质感内容的人并不多。大部分人要么停留在用AI写剧本、要么用图生图搞概念图，很少有人把整条链路跑通。</p><blockquote>一个好的短剧结尾不是「剧情转折」，而是「情绪高潮」——让观众带着一口气悬着去等下集。</blockquote><h2>工作流拆解</h2><p>角色一致性是AI视频最难的问题。我的方案是先用文生图跑出3-5张满意的角色参考图，锁定风格关键词，然后在后续所有生成任务中保持相同的提示词结构。</p>`,
     tags: ['AI探索', '短剧', '创作流程', '工具']
   },
   {
@@ -528,110 +953,154 @@ function getComboStage(count) {
     date: '2026-05-05',
     readTime: '4 min',
     excerpt: '五一去了贵阳和安顺，黄果树瀑布比我想象的更壮观。这篇文章记录了三天行程和几个很真实的感受。',
-    content: `
-<h2>行程概览</h2>
-<p>D1 贵阳：青岩古镇 + 甲秀楼 + 花溪夜市<br>D2 安顺：黄果树瀑布 + 天星桥景区<br>D3 返程：打卡贵阳本地早餐，丝娃娃+豆腐圆子</p>
-<h2>黄果树让我沉默了三分钟</h2>
-<p>我以为自己看过很多瀑布的照片，对实景应该有心理准备。但站在观瀑台上，那种水声的震荡感、雾气打在脸上的湿意、视野里完全被白色填满的那一刻，我确实一句话都没说出来。</p>
-<blockquote>有些东西，照片是骗人的。不是说照片不好，是因为照片拿走了维度。你以为你懂了，其实你连皮毛都没摸到。</blockquote>
-<p>在瀑布前站了挺久，脑子空掉了，完全没在想工作或者别的什么。这种状态现在很少有了。</p>
-<h2>青岩古镇：商业化但不烦</h2>
-<p>古镇的商业化程度比我想象的高，但因为建筑保存得好、巷子够深，稍微走进去一点就能找到安静的角落。买了一罐玫瑰腐乳，出乎意料地好吃。</p>
-<h2>一些实用tips</h2>
-<p>黄果树瀑布建议下午3点之后去，人少很多，光线也好。贵阳早餐推荐「肠旺面」，本地人排队的那种，不要去旅游街区。</p>
-`,
+    content: `<h2>行程概览</h2><p>D1 贵阳：青岩古镇 + 甲秀楼 + 花溪夜市<br>D2 安顺：黄果树瀑布 + 天星桥景区<br>D3 返程：打卡贵阳本地早餐，丝娃娃+豆腐圆子</p><blockquote>有些东西，照片是骗人的。不是说照片不好，是因为照片拿走了维度。你以为你懂了，其实你连皮毛都没摸到。</blockquote><p>在瀑布前站了挺久，脑子空掉了，完全没在想工作或者别的什么。这种状态现在很少有了。</p>`,
     tags: ['生活随想', '旅行', '贵州', '五一']
-  },
-  {
-    id: 4,
-    title: '2026年全球Top AI模型横向测评',
-    tag: 'AI探索',
-    color: ['#185FA5','#0C447C'],
-    emoji: '🤖',
-    date: '2026-04-28',
-    readTime: '10 min',
-    excerpt: '编码能力、多模态理解、推理深度、视频生成……从产品视角横向对比当下最值得关注的几个AI模型，看看谁在哪个维度真正领先。',
-    content: `
-<h2>评测框架</h2>
-<p>我不做学术benchmark，我关心的是：<strong>用这个模型做产品/创作，它能帮到我多少？</strong></p>
-<p>所以我的评测维度是：编码辅助、内容生成质量、多模态理解（看图/视频）、指令跟随精准度、工具调用可靠性。</p>
-<h2>编码能力</h2>
-<p>编码方面，头部模型之间的差距正在缩小，但在「理解复杂上下文」和「多文件协作修改」上还是有明显差异。最让我印象深刻的是对代码架构的理解力——不只是写出能跑的代码，而是写出「符合项目风格」的代码。</p>
-<h2>多模态理解</h2>
-<p>看图能力已经相当成熟，大部分模型在图文理解上都做得不错。真正拉开差距的是「视频理解」——能不能从一段视频里提取关键信息、分析叙事结构。这个能力对我做短剧分析非常有用。</p>
-<h2>视频生成</h2>
-<p>这是2026年竞争最激烈的战场。从一致性、运动合理性、提示词遵循度三个维度来看，各家都在快速迭代，差距每个月都在变化。建议保持动态关注而不是只看一个评测快照。</p>
-<blockquote>「最好的AI工具」这个问题问错了，正确的问法是：「对我这个具体任务，哪个工具在这个时间点最合适？」</blockquote>
-`,
-    tags: ['AI探索', '模型评测', '技术', '工具']
-  },
-  {
-    id: 5,
-    title: '产品经理的「地图思维」',
-    tag: '产品思考',
-    color: ['#BA7517','#854F0B'],
-    emoji: '🗺️',
-    date: '2026-04-20',
-    readTime: '5 min',
-    excerpt: '有一种产品经理总是在做「最近的那件事」，有一种产品经理在脑子里装着全局地图。这两种人的本质差异不是能力，是思维方式。',
-    content: `
-<h2>「地图」和「路标」的区别</h2>
-<p>做产品久了发现，很多人做需求是看「路标」的：当前在哪，下一个路口去哪，然后走。这没什么问题，只是这种方式在路况变化时容易迷路。</p>
-<p>「地图思维」是在出发前先把整张图装进脑子——不是每个细节，而是区域、方向、关键节点之间的关系。这样即使路标变了，你还知道自己在哪、要去哪。</p>
-<h2>在游戏策划里的实践</h2>
-<p>设计一个关卡，路标思维是「这个关卡要有什么机制」；地图思维是「这个关卡在整个关卡序列里的位置，它要为玩家建立什么心理模型，为后面的哪个关卡铺垫」。</p>
-<p>前者做出来的是一个能玩的关卡；后者做出来的是一个「恰好在这里」的关卡。</p>
-<blockquote>优秀的关卡设计不是每个关卡都很好，而是关卡之间的「间隙」被设计过了。</blockquote>
-<h2>怎么培养地图思维</h2>
-<p>强迫自己在每次做需求之前先回答三个问题：这个需求解决的是用户旅程的哪个阶段？它和已有功能的关系是什么？三个月后回头看，它应该朝哪个方向演化？</p>
-<p>这三个问题不是要找到完美答案，而是让自己意识到地图的存在。</p>
-`,
-    tags: ['产品思考', '方法论', '游戏策划']
-  },
-  {
-    id: 6,
-    title: '日语自学三个月，JLPT N3之前我做对了什么',
-    tag: '学习记录',
-    color: ['#993556','#72243E'],
-    emoji: '🇯🇵',
-    date: '2026-04-12',
-    readTime: '5 min',
-    excerpt: '不是学习计划模板，是我自己回顾三个月做对了哪些选择、走错了哪些弯路。如果你也在学日语，也许有一些可以对照的东西。',
-    content: `
-<h2>做对的事</h2>
-<p><strong>一、早期建立「全量输入」习惯。</strong>我第一个月专注于听，大量听日常对话和有字幕的动漫，不管能不能听懂，先让耳朵习惯语速和语调。这个过程比背单词无聊，但我后来发现它对「语感」的建立非常关键。</p>
-<p><strong>二、把复习系统化。</strong>用Anki做单词卡，严格按照遗忘曲线复习，不跳过。这个方法本身不新鲜，但能坚持下来的人不多。</p>
-<p><strong>三、设定具体的输出目标。</strong>不只是「背单词」，而是「这周用日语写三段日记」。写的过程会暴露你以为会但其实不会的东西。</p>
-<h2>走错的弯路</h2>
-<p>前期在语法书上花了太多时间，系统学语法当然没错，但我学得太细、太执着于「完全理解再往下走」。后来发现，很多语法在大量输入之后自然就内化了，过度分析反而是负担。</p>
-<blockquote>语言是工具，不是考试。先会用，再理解为什么这样用，往往比反过来更有效。</blockquote>
-<h2>N2目标规划</h2>
-<p>继续保持每天听力输入；单词量目标到6000+；开始做历年N2真题模拟；找语言交换伙伴练口语。时间线是明年年中参加考试。</p>
-`,
-    tags: ['学习记录', '日语', 'JLPT', '自学']
   }
 ];
 
-// ═══════════════════════ STATE ═══════════════════════
+const DEFAULT_SETTINGS = {
+  blogName: '碎碎念',
+  heroTitle: '记录思考、灵感\n与日常的杂货铺',
+  heroDesc: '游戏策划 · 产品思维 · AI探索 · 生活随想 — 什么都写，什么都想聊',
+  avatar: '✦',
+  author: '碎碎念主人',
+  tagline: '00后产品人 · 游戏策划 · AI探索者',
+  bio1: '数字媒体技术专业出身，有游戏策划背景，现在关注产品设计、AI工具应用和独立游戏开发。',
+  bio2: '正在开发一款三消3D手游，探索AI短剧制作，偶尔研究跨境电商。这个博客就是个杂货铺，欢迎随便逛。',
+  interests: '游戏策划,产品设计,AI工具,独立游戏,短视频创作,日语学习',
+  linkEmail: '',
+  link1Label: '🐦 微博',
+  link1Url: '',
+  link2Label: '📹 B站',
+  link2Url: ''
+};
+
+const EMOJI_OPTIONS = ['🎮','🎬','🏞️','🤖','🗺️','🇯🇵','💡','📚','🎵','🖥️','🌏','🧠','✍️','🔍','🏠','🎨','📦','🚀','🌸','⚡','🎯','💬','📊','🛠️'];
+
+const COLOR_PRESETS = [
+  ['#3a3a5c','#534AB7'], ['#d4516a','#993556'], ['#1D9E75','#0F6E56'],
+  ['#185FA5','#0C447C'], ['#BA7517','#854F0B'], ['#993556','#72243E'],
+  ['#5B3A8A','#3B1F60'], ['#1a6b3c','#0d4227'], ['#c07018','#7a4510'],
+  ['#1a4a7a','#0d2d4d'], ['#6b3a1a','#3d2010'], ['#2a6b6b','#154040']
+];
+
+// ════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════
+function loadArticles() {
+  try {
+    const raw = localStorage.getItem('blog_articles');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
+}
+
+function saveArticles(arr) {
+  localStorage.setItem('blog_articles', JSON.stringify(arr));
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('blog_settings');
+    if (raw) return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(raw));
+  } catch(e) {}
+  return Object.assign({}, DEFAULT_SETTINGS);
+}
+
+function saveSettings() {
+  const s = {
+    blogName: document.getElementById('s-name').value.trim() || DEFAULT_SETTINGS.blogName,
+    heroTitle: document.getElementById('s-hero-title').value.trim() || DEFAULT_SETTINGS.heroTitle,
+    heroDesc: document.getElementById('s-hero-desc').value.trim() || DEFAULT_SETTINGS.heroDesc,
+    avatar: document.getElementById('s-avatar').value.trim() || DEFAULT_SETTINGS.avatar,
+    author: document.getElementById('s-author').value.trim() || DEFAULT_SETTINGS.author,
+    tagline: document.getElementById('s-tagline').value.trim() || DEFAULT_SETTINGS.tagline,
+    bio1: document.getElementById('s-bio1').value.trim() || DEFAULT_SETTINGS.bio1,
+    bio2: document.getElementById('s-bio2').value.trim() || DEFAULT_SETTINGS.bio2,
+    interests: document.getElementById('s-interests').value.trim() || DEFAULT_SETTINGS.interests,
+    linkEmail: document.getElementById('s-link-email').value.trim(),
+    link1Label: document.getElementById('s-link1-label').value.trim(),
+    link1Url: document.getElementById('s-link1-url').value.trim(),
+    link2Label: document.getElementById('s-link2-label').value.trim(),
+    link2Url: document.getElementById('s-link2-url').value.trim()
+  };
+  localStorage.setItem('blog_settings', JSON.stringify(s));
+  applySettings(s);
+  showToast('设置已保存 ✓');
+}
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let ARTICLES = loadArticles();
+let SETTINGS = loadSettings();
 let currentTag = 'all';
 let currentPage = 'home';
 let prevPage = 'home';
+let editingArticleId = null;
+let currentArticleId = null;
 
-// ═══════════════════════ INIT ═══════════════════════
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
 function init() {
+  applySettings(SETTINGS);
   buildTagBar();
   renderHome();
   renderArchive();
+  buildEmojiGrid();
+  buildColorPresets();
+  buildTagSuggestions();
   window.addEventListener('scroll', updateProgress);
+  // 快捷键
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); openAdmin(); }
+    if (e.key === 'Escape') { closeAdmin(); closeSearch(e); }
+  });
+  // 今天日期默认
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
 }
 
-// ═══════════════════════ TAG BAR ═══════════════════════
+// ════════════════════════════════════════
+//  APPLY SETTINGS TO PAGE
+// ════════════════════════════════════════
+function applySettings(s) {
+  SETTINGS = s;
+  document.getElementById('nav-brand').textContent = '✦ ' + s.blogName;
+  document.title = s.blogName + ' · 博客';
+  const ht = document.getElementById('hero-title');
+  if (ht) ht.innerHTML = s.heroTitle.replace(/\n/g, '<br>');
+  const hd = document.getElementById('hero-desc');
+  if (hd) hd.textContent = s.heroDesc;
+  document.getElementById('about-avatar').textContent = s.avatar;
+  document.getElementById('about-name').textContent = s.author;
+  document.getElementById('about-tagline').textContent = s.tagline;
+  document.getElementById('about-bio1').textContent = s.bio1;
+  document.getElementById('about-bio2').textContent = s.bio2;
+  document.getElementById('footer-text').textContent = '© ' + new Date().getFullYear() + ' ' + s.blogName + ' · 用文字记录一切有趣的东西';
+  // 兴趣标签
+  const itEl = document.getElementById('about-interests');
+  itEl.innerHTML = s.interests.split(',').filter(Boolean).map(t => `<span class="about-tag">${t.trim()}</span>`).join('');
+  // 联系链接
+  const linksEl = document.getElementById('about-links');
+  let linksHtml = '';
+  if (s.linkEmail) linksHtml += `<a class="about-link-btn" href="${s.linkEmail}">📧 发邮件给我</a>`;
+  if (s.link1Url && s.link1Label) linksHtml += `<a class="about-link-btn" href="${s.link1Url}" target="_blank">${s.link1Label}</a>`;
+  if (s.link2Url && s.link2Label) linksHtml += `<a class="about-link-btn" href="${s.link2Url}" target="_blank">${s.link2Label}</a>`;
+  if (!linksHtml) linksHtml = '<span style="color:var(--text3);font-size:13px;">暂未设置联系方式</span>';
+  linksEl.innerHTML = linksHtml;
+}
+
+// ════════════════════════════════════════
+//  TAG BAR
+// ════════════════════════════════════════
 function buildTagBar() {
   const tags = ['all', ...new Set(ARTICLES.map(a => a.tag))];
   const bar = document.getElementById('tag-bar');
+  bar.innerHTML = '<span class="tag-bar-label">筛选：</span>';
   tags.forEach(tag => {
     const pill = document.createElement('span');
-    pill.className = 'tag-pill' + (tag === 'all' ? ' active' : '');
+    pill.className = 'tag-pill' + (tag === currentTag ? ' active' : '');
     pill.textContent = tag === 'all' ? '全部' : tag;
     pill.onclick = () => filterByTag(tag, pill);
     bar.appendChild(pill);
@@ -641,22 +1110,24 @@ function buildTagBar() {
 function filterByTag(tag, el) {
   currentTag = tag;
   document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   renderHome();
 }
 
-// ═══════════════════════ HOME ═══════════════════════
+// ════════════════════════════════════════
+//  HOME
+// ════════════════════════════════════════
 function renderHome() {
-  const filtered = currentTag === 'all' ? ARTICLES : ARTICLES.filter(a => a.tag === currentTag);
+  const sorted = [...ARTICLES].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const filtered = currentTag === 'all' ? sorted : sorted.filter(a => a.tag === currentTag);
   const featured = filtered.find(a => a.featured) || filtered[0];
-  const rest = filtered.filter(a => !a.featured || a !== featured);
+  const rest = filtered.filter(a => a !== featured);
 
-  // featured
   const fa = document.getElementById('featured-area');
   if (featured && currentTag === 'all') {
     fa.innerHTML = `
       <div class="featured-card" onclick="showArticle(${featured.id})">
-        <div class="featured-img" style="background: linear-gradient(135deg, ${featured.color[0]}, ${featured.color[1]})">
+        <div class="featured-img" style="background:linear-gradient(135deg,${featured.color[0]},${featured.color[1]})">
           <div class="featured-img-overlay">${featured.emoji}</div>
           <span class="featured-img-badge">精选 · Featured</span>
         </div>
@@ -675,7 +1146,6 @@ function renderHome() {
     fa.innerHTML = '';
   }
 
-  // grid
   const grid = document.getElementById('articles-grid');
   const list = currentTag === 'all' ? rest : filtered;
   if (list.length === 0) {
@@ -684,26 +1154,26 @@ function renderHome() {
   }
   grid.innerHTML = list.map(a => `
     <div class="article-card" onclick="showArticle(${a.id})">
-      <div class="article-thumb" style="background: linear-gradient(135deg, ${a.color[0]}, ${a.color[1]})">
+      <div class="article-thumb" style="background:linear-gradient(135deg,${a.color[0]},${a.color[1]})">
         <span class="article-thumb-text">${a.emoji}</span>
       </div>
       <div class="article-body">
         <span class="article-tag">${a.tag}</span>
         <h3 class="article-title">${a.title}</h3>
         <p class="article-excerpt">${a.excerpt}</p>
-        <div class="article-meta">
-          <span>${a.date}</span>
-          <span>${a.readTime}</span>
-        </div>
+        <div class="article-meta"><span>${a.date}</span><span>${a.readTime}</span></div>
       </div>
     </div>`).join('');
 }
 
-// ═══════════════════════ ARTICLE ═══════════════════════
+// ════════════════════════════════════════
+//  ARTICLE DETAIL
+// ════════════════════════════════════════
 function showArticle(id) {
   const a = ARTICLES.find(x => x.id === id);
   if (!a) return;
   prevPage = currentPage;
+  currentArticleId = id;
 
   document.getElementById('article-header').innerHTML = `
     <div class="article-header-tag">${a.tag}</div>
@@ -714,12 +1184,13 @@ function showArticle(id) {
       ${a.tags.map(t => `<span style="background:#f0eee8;padding:2px 8px;border-radius:10px;font-size:11px;">${t}</span>`).join('')}
     </div>`;
 
-  document.getElementById('article-cover').style.background = `linear-gradient(135deg, ${a.color[0]}, ${a.color[1]})`;
+  document.getElementById('article-cover').style.background = `linear-gradient(135deg,${a.color[0]},${a.color[1]})`;
   document.getElementById('article-cover').innerHTML = `<span style="font-size:80px;opacity:0.8">${a.emoji}</span>`;
 
   document.getElementById('article-content').innerHTML = a.content + `
     <div class="article-tags">${a.tags.map(t => `<span class="article-tag-pill" onclick="filterTag('${t}')">${t}</span>`).join('')}</div>`;
 
+  document.getElementById('edit-article-btn').style.display = 'inline-flex';
   showPage('article', null, true);
   window.scrollTo(0, 0);
 }
@@ -733,15 +1204,16 @@ function filterTag(tag) {
   renderHome();
 }
 
-function goBack() {
-  showPage(prevPage);
-}
+function goBack() { showPage(prevPage); }
 
-// ═══════════════════════ ARCHIVE ═══════════════════════
+// ════════════════════════════════════════
+//  ARCHIVE
+// ════════════════════════════════════════
 function renderArchive() {
+  const sorted = [...ARTICLES].sort((a,b) => (b.date||'').localeCompare(a.date||''));
   const years = {};
-  ARTICLES.forEach(a => {
-    const y = a.date.slice(0, 4);
+  sorted.forEach(a => {
+    const y = (a.date || '').slice(0, 4) || '未知';
     if (!years[y]) years[y] = [];
     years[y].push(a);
   });
@@ -751,21 +1223,23 @@ function renderArchive() {
     <div class="archive-year">${year}</div>
     ${years[year].map(a => `
       <div class="archive-item" onclick="showArticle(${a.id})">
-        <span class="archive-item-date">${a.date.slice(5)}</span>
+        <span class="archive-item-date">${(a.date||'').slice(5)}</span>
         <span class="archive-item-title">${a.title}</span>
         <span class="archive-item-tag">${a.tag}</span>
       </div>`).join('')}
   `).join('');
 }
 
-// ═══════════════════════ SEARCH ═══════════════════════
+// ════════════════════════════════════════
+//  SEARCH
+// ════════════════════════════════════════
 function openSearch() {
   document.getElementById('search-overlay').classList.add('open');
   setTimeout(() => document.getElementById('search-input').focus(), 50);
 }
 
 function closeSearch(e) {
-  if (e.target.id === 'search-overlay') {
+  if (!e || e.target.id === 'search-overlay' || e.key === 'Escape') {
     document.getElementById('search-overlay').classList.remove('open');
     document.getElementById('search-input').value = '';
     document.getElementById('search-results').innerHTML = '';
@@ -779,7 +1253,7 @@ function doSearch(q) {
   const hits = ARTICLES.filter(a =>
     a.title.toLowerCase().includes(kw) ||
     a.excerpt.toLowerCase().includes(kw) ||
-    a.tags.some(t => t.toLowerCase().includes(kw)) ||
+    (a.tags||[]).some(t => t.toLowerCase().includes(kw)) ||
     a.tag.toLowerCase().includes(kw)
   );
   if (hits.length === 0) {
@@ -800,7 +1274,9 @@ function selectSearchResult(id) {
   showArticle(id);
 }
 
-// ═══════════════════════ PROGRESS BAR ═══════════════════════
+// ════════════════════════════════════════
+//  PROGRESS BAR
+// ════════════════════════════════════════
 function updateProgress() {
   const bar = document.getElementById('progress-bar');
   const articlePage = document.getElementById('page-article');
@@ -811,7 +1287,9 @@ function updateProgress() {
   bar.style.width = total > 0 ? Math.min(100, (scrolled / total) * 100) + '%' : '0%';
 }
 
-// ═══════════════════════ PAGE ROUTING ═══════════════════════
+// ════════════════════════════════════════
+//  PAGE ROUTING
+// ════════════════════════════════════════
 function showPage(name, btnEl, skipNavUpdate) {
   currentPage = name;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -829,7 +1307,352 @@ function showPage(name, btnEl, skipNavUpdate) {
   }
   if (name === 'article') updateProgress();
   else document.getElementById('progress-bar').style.width = '0%';
+  if (name !== 'article') document.getElementById('edit-article-btn').style.display = 'none';
 }
+
+// ════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ════════════════════════════════════════
+//  ADMIN PANEL
+// ════════════════════════════════════════
+function openAdmin() {
+  document.getElementById('admin-overlay').classList.add('open');
+  renderAdminArticleList();
+  loadSettingsForm();
+}
+
+function closeAdmin() {
+  document.getElementById('admin-overlay').classList.remove('open');
+}
+
+function handleAdminOverlayClick(e) {
+  if (e.target === document.getElementById('admin-overlay')) closeAdmin();
+}
+
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('admin-' + tab).classList.add('active');
+}
+
+// ─── 文章列表 ───
+function renderAdminArticleList() {
+  const sorted = [...ARTICLES].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  document.getElementById('article-count').textContent = ARTICLES.length;
+  const list = document.getElementById('admin-article-list');
+  if (ARTICLES.length === 0) {
+    list.innerHTML = '<div class="admin-empty"><div class="emoji">📝</div>还没有文章，点击「新建文章」开始写吧！</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(a => `
+    <div class="admin-article-item">
+      <div class="admin-article-emoji">${a.emoji}</div>
+      <div class="admin-article-info">
+        <div class="admin-article-title">${a.title} ${a.featured ? '<span style="font-size:10px;background:#fce9ec;color:var(--accent);padding:1px 6px;border-radius:8px;margin-left:4px;">精选</span>' : ''}</div>
+        <div class="admin-article-meta">${a.tag} · ${a.date} · ${a.readTime}</div>
+      </div>
+      <div class="admin-article-actions">
+        <button class="btn btn-sm btn-icon" title="编辑" onclick="editArticle(${a.id})">✏️</button>
+        <button class="btn btn-sm btn-icon btn-danger" title="删除" onclick="confirmDeleteArticle(${a.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── 新建文章 ───
+function newArticle() {
+  editingArticleId = null;
+  document.getElementById('editor-mode-label').textContent = '✍️ 新建文章';
+  clearArticleForm();
+  switchAdminTab('write', document.querySelectorAll('.admin-tab')[1]);
+}
+
+function clearArticleForm() {
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-tag').value = '';
+  document.getElementById('f-readtime').value = '5 min';
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-featured').value = '0';
+  document.getElementById('f-excerpt').value = '';
+  document.getElementById('f-tags').value = '';
+  document.getElementById('f-emoji').value = '✍️';
+  document.getElementById('f-color1').value = '#3a3a5c';
+  document.getElementById('f-color2').value = '#534AB7';
+  document.getElementById('article-editor').value = '';
+  document.getElementById('content-preview').innerHTML = '';
+  document.getElementById('content-preview').classList.remove('show');
+  document.getElementById('article-editor').style.display = 'block';
+  // reset editor tabs
+  document.querySelectorAll('.editor-tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  // deselect emoji/color
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  document.querySelectorAll('.color-preset').forEach(c => c.classList.remove('selected'));
+}
+
+function cancelEdit() {
+  switchAdminTab('articles', document.querySelectorAll('.admin-tab')[0]);
+  editingArticleId = null;
+}
+
+// ─── 编辑文章 ───
+function editArticle(id) {
+  const a = ARTICLES.find(x => x.id === id);
+  if (!a) return;
+  editingArticleId = id;
+  document.getElementById('editor-mode-label').textContent = '✏️ 编辑文章';
+  document.getElementById('f-title').value = a.title;
+  document.getElementById('f-tag').value = a.tag;
+  document.getElementById('f-readtime').value = a.readTime;
+  document.getElementById('f-date').value = a.date;
+  document.getElementById('f-featured').value = a.featured ? '1' : '0';
+  document.getElementById('f-excerpt').value = a.excerpt;
+  document.getElementById('f-tags').value = (a.tags||[]).join(',');
+  document.getElementById('f-emoji').value = a.emoji;
+  document.getElementById('f-color1').value = a.color[0];
+  document.getElementById('f-color2').value = a.color[1];
+  document.getElementById('article-editor').value = a.content;
+  document.getElementById('content-preview').innerHTML = '';
+  document.getElementById('content-preview').classList.remove('show');
+  document.getElementById('article-editor').style.display = 'block';
+  document.querySelectorAll('.editor-tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  // highlight emoji
+  document.querySelectorAll('.emoji-opt').forEach(e => {
+    e.classList.toggle('selected', e.dataset.emoji === a.emoji);
+  });
+  switchAdminTab('write', document.querySelectorAll('.admin-tab')[1]);
+}
+
+function editCurrentArticle() {
+  if (currentArticleId) { editArticle(currentArticleId); openAdmin(); }
+}
+
+// ─── 保存文章 ───
+function saveArticle() {
+  const title = document.getElementById('f-title').value.trim();
+  const tag = document.getElementById('f-tag').value.trim();
+  const excerpt = document.getElementById('f-excerpt').value.trim();
+  const content = document.getElementById('article-editor').value.trim();
+  if (!title || !tag || !excerpt || !content) {
+    showToast('请填写必填项（标题、分类、摘要、正文）');
+    return;
+  }
+  const tagsRaw = document.getElementById('f-tags').value;
+  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+  if (!tags.length) tags.push(tag);
+
+  const article = {
+    id: editingArticleId || (Date.now()),
+    title,
+    tag,
+    color: [document.getElementById('f-color1').value, document.getElementById('f-color2').value],
+    emoji: document.getElementById('f-emoji').value.trim() || '✍️',
+    date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
+    readTime: document.getElementById('f-readtime').value.trim() || '5 min',
+    excerpt,
+    content,
+    tags,
+    featured: document.getElementById('f-featured').value === '1'
+  };
+
+  if (editingArticleId) {
+    const idx = ARTICLES.findIndex(x => x.id === editingArticleId);
+    if (idx !== -1) ARTICLES[idx] = article;
+    showToast('文章已更新 ✓');
+  } else {
+    ARTICLES.unshift(article);
+    showToast('文章已发布 ✓');
+  }
+
+  saveArticles(ARTICLES);
+  buildTagBar();
+  renderHome();
+  renderArchive();
+  buildTagSuggestions();
+  editingArticleId = null;
+  cancelEdit();
+  renderAdminArticleList();
+}
+
+// ─── 删除文章 ───
+function confirmDeleteArticle(id) {
+  const a = ARTICLES.find(x => x.id === id);
+  if (!a) return;
+  showConfirm('确认删除？', `「${a.title}」将被永久删除，无法恢复。`, () => {
+    ARTICLES = ARTICLES.filter(x => x.id !== id);
+    saveArticles(ARTICLES);
+    buildTagBar();
+    renderHome();
+    renderArchive();
+    renderAdminArticleList();
+    showToast('已删除 ✓');
+  });
+}
+
+// ─── 设置表单 ───
+function loadSettingsForm() {
+  const s = loadSettings();
+  document.getElementById('s-name').value = s.blogName;
+  document.getElementById('s-hero-title').value = s.heroTitle;
+  document.getElementById('s-hero-desc').value = s.heroDesc;
+  document.getElementById('s-avatar').value = s.avatar;
+  document.getElementById('s-author').value = s.author;
+  document.getElementById('s-tagline').value = s.tagline;
+  document.getElementById('s-bio1').value = s.bio1;
+  document.getElementById('s-bio2').value = s.bio2;
+  document.getElementById('s-interests').value = s.interests;
+  document.getElementById('s-link-email').value = s.linkEmail || '';
+  document.getElementById('s-link1-label').value = s.link1Label || '';
+  document.getElementById('s-link1-url').value = s.link1Url || '';
+  document.getElementById('s-link2-label').value = s.link2Label || '';
+  document.getElementById('s-link2-url').value = s.link2Url || '';
+}
+
+// ─── 备份导出 ───
+function exportData() {
+  const data = { articles: ARTICLES, settings: loadSettings(), exportedAt: new Date().toISOString() };
+  downloadJson(data, 'blog-backup-' + new Date().toISOString().slice(0,10) + '.json');
+  showToast('导出成功 ✓');
+}
+
+function exportArticlesOnly() {
+  downloadJson({ articles: ARTICLES }, 'blog-articles-' + new Date().toISOString().slice(0,10) + '.json');
+  showToast('文章数据已导出 ✓');
+}
+
+function downloadJson(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const imported = data.articles || data;
+      if (!Array.isArray(imported)) { showToast('文件格式不正确'); return; }
+      // 合并，避免 id 冲突
+      const existIds = new Set(ARTICLES.map(a => a.id));
+      let added = 0;
+      imported.forEach(a => {
+        if (!existIds.has(a.id)) { ARTICLES.push(a); existIds.add(a.id); added++; }
+      });
+      saveArticles(ARTICLES);
+      buildTagBar(); renderHome(); renderArchive(); renderAdminArticleList();
+      showToast(`已导入 ${added} 篇文章 ✓`);
+    } catch(err) { showToast('解析失败，请检查文件格式'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function confirmReset() {
+  showConfirm('⚠️ 重置所有数据', '将删除所有文章和设置，恢复初始示例状态，不可撤销！', () => {
+    localStorage.removeItem('blog_articles');
+    localStorage.removeItem('blog_settings');
+    ARTICLES = JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
+    SETTINGS = Object.assign({}, DEFAULT_SETTINGS);
+    applySettings(SETTINGS);
+    buildTagBar(); renderHome(); renderArchive(); renderAdminArticleList();
+    showToast('已重置 ✓');
+  });
+}
+
+// ─── 编辑器辅助 ───
+function buildEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = EMOJI_OPTIONS.map(e => `
+    <div class="emoji-opt" data-emoji="${e}" onclick="selectEmoji('${e}',this)">${e}</div>`).join('');
+}
+
+function selectEmoji(emoji, el) {
+  document.getElementById('f-emoji').value = emoji;
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function buildColorPresets() {
+  const wrap = document.getElementById('color-presets');
+  wrap.innerHTML = COLOR_PRESETS.map((p, i) => `
+    <div class="color-preset" data-i="${i}" title="${p[0]} → ${p[1]}"
+      style="background:linear-gradient(135deg,${p[0]},${p[1]})"
+      onclick="selectColorPreset(${i},this)"></div>`).join('');
+}
+
+function selectColorPreset(i, el) {
+  document.getElementById('f-color1').value = COLOR_PRESETS[i][0];
+  document.getElementById('f-color2').value = COLOR_PRESETS[i][1];
+  document.querySelectorAll('.color-preset').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function buildTagSuggestions() {
+  const tags = [...new Set(ARTICLES.map(a => a.tag))];
+  document.getElementById('tag-suggestions').innerHTML = tags.map(t => `<option value="${t}">`).join('');
+}
+
+function switchEditorTab(mode, el) {
+  document.querySelectorAll('.editor-tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const editor = document.getElementById('article-editor');
+  const preview = document.getElementById('content-preview');
+  if (mode === 'preview') {
+    preview.innerHTML = editor.value || '<span style="color:var(--text3)">暂无内容</span>';
+    editor.style.display = 'none';
+    preview.classList.add('show');
+  } else {
+    editor.style.display = 'block';
+    preview.classList.remove('show');
+  }
+}
+
+function insertTag(tag) {
+  const ta = document.getElementById('article-editor');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const selected = ta.value.slice(start, end);
+  let insert = '';
+  if (tag === 'br') {
+    insert = '<br>\n';
+  } else if (tag === 'pre') {
+    insert = selected ? `<pre><code>${selected}</code></pre>` : '<pre><code>// 代码内容</code></pre>';
+  } else {
+    insert = selected ? `<${tag}>${selected}</${tag}>` : `<${tag}></${tag}>`;
+  }
+  ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
+  const pos = start + insert.length;
+  ta.setSelectionRange(pos, pos);
+  ta.focus();
+}
+
+// ─── 确认对话框 ───
+let _confirmCallback = null;
+function showConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  _confirmCallback = cb;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  _confirmCallback = null;
+}
+document.getElementById('confirm-ok-btn').onclick = () => {
+  if (_confirmCallback) _confirmCallback();
+  closeConfirm();
+};
 
 init();
 </script>
