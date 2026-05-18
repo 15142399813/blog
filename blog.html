@@ -1207,7 +1207,14 @@ function loadArticles() {
 }
 
 function saveArticles(arr) {
-  localStorage.setItem('blog_articles', JSON.stringify(arr));
+  try {
+    localStorage.setItem('blog_articles', JSON.stringify(arr));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') {
+      showToast('存储空间不足！请减少图片数量或压缩图片大小');
+    }
+    throw e;
+  }
 }
 
 function loadSettings() {
@@ -1753,8 +1760,8 @@ function saveArticle() {
     showToast('文章已发布 ✓');
   }
 
-  saveArticles(ARTICLES);
-  // 保存后清空 sessionStorage 图片缓存（已嵌入 content，无需再存）
+  try { saveArticles(ARTICLES); } catch(e) { console.error('保存失败:', e); showToast('保存失败，请重试'); return; }
+  // 保存后清空 sessionStorage 图片缓存（图片已嵌入 content，无需再存）
   try { sessionStorage.removeItem('blog_images'); } catch(e) {}
   // 清理旧 localStorage 残留
   try { localStorage.removeItem('blog_images'); } catch(e) {}
@@ -1960,8 +1967,12 @@ function confirmDeleteArticle(id) {
   if (!a) return;
   showConfirm('确认删除？', `「${a.title}」将被永久删除，无法恢复。`, () => {
     ARTICLES = ARTICLES.filter(x => x.id !== id);
-    saveArticles(ARTICLES);
-    buildTagBar();
+  try { saveArticles(ARTICLES); } catch(e) { console.error('保存失败:', e); showToast('保存失败，请重试'); return; }
+  // 保存后清空 sessionStorage 图片缓存（图片已嵌入 content，无需再存）
+  try { sessionStorage.removeItem('blog_images'); } catch(e) {}
+  // 清理旧 localStorage 残留
+  try { localStorage.removeItem('blog_images'); } catch(e) {}
+  buildTagBar();
     renderHome();
     renderArchive();
     renderAdminArticleList();
@@ -2165,48 +2176,56 @@ function setImageStore(imgs) {
 }
 // 将 textarea 内容中的 [📷 id] 占位符还原为完整 <img> 标签
 function restoreImages(html) {
-  return html.replace(/\[📷 ([\w-]+)\]/g, (_, id) => {
-    const imgs = getImageStore();
-    if (imgs[id]) {
-      return `<img src="${imgs[id]}" alt="图片" style="max-width:100%;border-radius:8px;margin:16px 0;">`;
-    }
-    return `<span style="color:#e55;font-size:12px;">[图片已失效]</span>`;
-  });
+  if (!html) return html;
+  try {
+    return html.replace(/\[📷 ([\w-]+)\]/g, (_, id) => {
+      const imgs = getImageStore();
+      if (imgs[id]) {
+        return `<img src="${imgs[id]}" alt="图片" style="max-width:100%;border-radius:8px;margin:16px 0;">`;
+      }
+      return `<span style="color:#e55;font-size:12px;">[图片已失效]</span>`;
+    });
+  } catch(e) {
+    return html; // 出错时保留原内容
+  }
 }
 
-// 加载文章到编辑器时：把 <img src="data:..."> 替换为占位符 [IMG:id]
+// 加载文章到编辑器时：把 <img src="data:..."> 替换为占位符 [📷 id]
 function editorifyContent(content) {
-  let counter = 0;
-  const oldImgs = [];
-  // 第一步：提取所有 base64，替换为临时标记
-  const step1 = content.replace(/<img src="(data:image\/[^"]+)"/g, (m, src) => {
-    const idx = counter++;
-    oldImgs.push(src);
-    return `___OLDIMG_${idx}___`;
-  });
-  // 第二步：临时标记替换为 [IMG:id]，同时写入 blog_images 持久化
-  const imgs = getImageStore();
-  let changed = false;
-  const step2 = step1.replace(/___OLDIMG_(\d+)___/g, (_, idx) => {
-    const src = oldImgs[parseInt(idx)];
-    let found = null;
-    for (const [k, v] of Object.entries(imgs)) { if (v === src) { found = k; break; } }
-    if (!found) {
-      found = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-      imgs[found] = src;
-      changed = true;
-    }
-    return `[📷 ${found}]`;
-  });
-  if (changed) setImageStore(imgs);
-  return step2;
+  if (!content) return content;
+  try {
+    let counter = 0;
+    const oldImgs = [];
+    // 第一步：提取所有 base64，替换为临时标记
+    const step1 = content.replace(/<img src="(data:image\/[^"]+)"/g, (m, src) => {
+      const idx = counter++;
+      oldImgs.push(src);
+      return `___OLDIMG_${idx}___`;
+    });
+    // 第二步：临时标记替换为 [📷 id]，同时写入 sessionStorage
+    const imgs = getImageStore();
+    let changed = false;
+    const step2 = step1.replace(/___OLDIMG_(\d+)___/g, (_, idx) => {
+      const src = oldImgs[parseInt(idx)];
+      let found = null;
+      for (const [k, v] of Object.entries(imgs)) { if (v === src) { found = k; break; } }
+      if (!found) {
+        found = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        imgs[found] = src;
+        changed = true;
+      }
+      return `[📷 ${found}]`;
+    });
+    if (changed) setImageStore(imgs);
+    return step2;
+  } catch(e) {
+    return content; // 出错时保留原内容
+  }
 }
 function convertImagesToPlaceholders(html) { return editorifyContent(html); }
 
 function insertImageInContent() {
-  const input = document.getElementById('content-img-file');
-  console.log('insertImageInContent called, input found:', !!input);
-  input.click();
+  document.getElementById('content-img-file').click();
 }
 
 function handleContentImageUpload(input) {
@@ -2218,15 +2237,12 @@ function handleContentImageUpload(input) {
     const id = 'img_' + Date.now();
     const imgs = getImageStore();
     imgs[id] = base64;
-    setImageStore(imgs);
-    // 插入短占位符，不再是超长 base64
-    const placeholder = `[📷 ${id}]`;
-    console.log('inserting placeholder:', placeholder);
+    try { setImageStore(imgs); } catch(e) {
+      showToast('图片过大，sessionStorage 不足，请先保存一篇文章');
+      return;
+    }
     insertTag('IMG', id);
     showToast('图片已插入 ✓');
-    // 确认插入成功
-    const ta = document.getElementById('article-editor');
-    console.log('textarea content after insert:', ta.value.slice(-60));
   };
   reader.readAsDataURL(file);
   input.value = '';
@@ -2234,7 +2250,6 @@ function handleContentImageUpload(input) {
 
 function insertTag(tag, extra) {
   const ta = document.getElementById('article-editor');
-  if (!ta) { console.error('article-editor not found!'); return; }
   const start = ta.selectionStart, end = ta.selectionEnd;
   const selected = ta.value.slice(start, end);
   let insert = '';
