@@ -1696,7 +1696,7 @@ function editArticle(id) {
   document.getElementById('f-emoji').value = a.emoji;
   document.getElementById('f-color1').value = a.color[0];
   document.getElementById('f-color2').value = a.color[1];
-  document.getElementById('article-editor').value = a.content;
+  document.getElementById('article-editor').value = editorifyContent(a.content);
   document.getElementById('content-preview').innerHTML = '';
   document.getElementById('content-preview').classList.remove('show');
   document.getElementById('article-editor').style.display = 'block';
@@ -2168,6 +2168,35 @@ function restoreImages(html) {
     return `<span style="color:#e55;font-size:12px;">[图片已失效]</span>`;
   });
 }
+
+// 加载文章到编辑器时：把 <img src="data:..."> 替换为占位符 [IMG:id]
+function editorifyContent(content) {
+  let counter = 0;
+  const oldImgs = [];
+  // 第一步：提取所有 base64，替换为临时标记
+  const step1 = content.replace(/<img src="(data:image\/[^"]+)"/g, (m, src) => {
+    const idx = counter++;
+    oldImgs.push(src);
+    return `___OLDIMG_${idx}___`;
+  });
+  // 第二步：临时标记替换为 [IMG:id]，同时写入 blog_images 持久化
+  const imgs = getImageStore();
+  let changed = false;
+  const step2 = step1.replace(/___OLDIMG_(\d+)___/g, (_, idx) => {
+    const src = oldImgs[parseInt(idx)];
+    let found = null;
+    for (const [k, v] of Object.entries(imgs)) { if (v === src) { found = k; break; } }
+    if (!found) {
+      found = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      imgs[found] = src;
+      changed = true;
+    }
+    return `[IMG:${found}]`;
+  });
+  if (changed) setImageStore(imgs);
+  return step2;
+}
+function convertImagesToPlaceholders(html) { return editorifyContent(html); }
 
 function insertImageInContent() {
   document.getElementById('content-img-file').click();
