@@ -548,6 +548,52 @@
   .admin-empty { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
   .admin-empty .emoji { font-size: 36px; margin-bottom: 10px; }
 
+  /* 分类管理 */
+  .cat-list { display: flex; flex-direction: column; gap: 8px; }
+  .cat-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+    transition: border-color 0.15s;
+  }
+  .cat-item:hover { border-color: var(--accent); }
+  .cat-swatch {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .cat-info { flex: 1; min-width: 0; }
+  .cat-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .cat-count { font-size: 11px; color: var(--text3); }
+  .cat-actions { display: flex; gap: 4px; }
+  .cat-empty { text-align: center; padding: 24px; color: var(--text3); font-size: 13px; }
+
+  /* 分类编辑弹窗 */
+  #cat-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 800;
+    background: rgba(0,0,0,0.45);
+    align-items: center; justify-content: center;
+  }
+  #cat-modal-overlay.open { display: flex; }
+  .cat-modal-box {
+    background: var(--surface); border-radius: 14px;
+    padding: 28px; width: 90%; max-width: 440px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+  }
+  .cat-modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+  .cat-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* 删除分类确认里的文章迁移选择 */
+  #cat-migrate-select { display: none; margin-top: 12px; }
+  #cat-migrate-select.show { display: block; }
+
+  #cat-del-overlay {
+    display: none; position: fixed; inset: 0; z-index: 900;
+    background: rgba(0,0,0,0.5);
+    align-items: center; justify-content: center;
+  }
+  #cat-del-overlay.open { display: flex; }
+
   /* 备份区域 */
   .backup-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
@@ -590,10 +636,10 @@
       <button class="btn btn-sm" onclick="closeAdmin()">✕ 关闭</button>
     </div>
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="switchAdminTab('articles',this)">📄 文章管理</button>
+      <button class="admin-tab" onclick="switchAdminTab('articles',this)">📄 文章管理</button>
       <button class="admin-tab" onclick="switchAdminTab('write',this)">✍️ 写文章</button>
+      <button class="admin-tab" onclick="switchAdminTab('categories',this)">🏷️ 分类管理</button>
       <button class="admin-tab" onclick="switchAdminTab('settings',this)">⚙️ 博客设置</button>
-      <button class="admin-tab" onclick="switchAdminTab('backup',this)">💾 备份导出</button>
     </div>
     <div class="admin-body">
 
@@ -704,6 +750,15 @@
         </div>
       </div>
 
+      <!-- ─── 分类管理 ─── -->
+      <div id="admin-categories" class="admin-section">
+        <div class="admin-top-bar">
+          <h3>🏷️ 分类管理 (<span id="cat-count">0</span>)</h3>
+          <button class="btn btn-primary" onclick="openCategoryModal()">＋ 新建分类</button>
+        </div>
+        <div class="cat-list" id="cat-list"></div>
+      </div>
+
       <!-- ─── 博客设置 ─── -->
       <div id="admin-settings" class="admin-section">
         <div class="setting-block">
@@ -812,6 +867,56 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div id="cat-modal-overlay">
+  <div class="cat-modal-box">
+    <div class="cat-modal-title" id="cat-modal-title">新建分类</div>
+    <div class="form-group">
+      <label class="form-label">分类名称 *</label>
+      <input type="text" class="form-input" id="cm-name" placeholder="如：游戏策划、AI探索">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类 Emoji</label>
+      <input type="text" class="form-input" id="cm-emoji" placeholder="选择一个 Emoji，如 🎮" style="font-size:18px;max-width:80px">
+      <div class="emoji-grid" id="cm-emoji-grid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类颜色</label>
+      <div class="form-row">
+        <div>
+          <label class="form-label" style="font-size:11px">起始色</label>
+          <input type="color" class="form-input" id="cm-color1" value="#3a3a5c" style="height:40px;padding:4px;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px">结束色</label>
+          <input type="color" class="form-input" id="cm-color2" value="#534AB7" style="height:40px;padding:4px;">
+        </div>
+      </div>
+      <div class="color-presets" id="cm-color-presets"></div>
+    </div>
+    <div class="cat-modal-actions">
+      <button class="btn" onclick="closeCategoryModal()">取消</button>
+      <button class="btn btn-primary" id="cm-save-btn" onclick="saveCategoryModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Delete Confirm -->
+<div id="cat-del-overlay">
+  <div class="confirm-box" style="max-width:380px;">
+    <h4 id="cd-title">删除分类</h4>
+    <p id="cd-msg"></p>
+    <div id="cd-migrate-wrap" style="margin:12px 0;display:none;">
+      <label class="form-label" style="font-size:11px;text-transform:none;letter-spacing:0;">删除后，将该分类下的文章迁移到：</label>
+      <select class="form-input" id="cd-migrate-target" style="margin-top:6px;"></select>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeCatDelConfirm()">取消</button>
+      <button class="btn btn-danger" onclick="confirmCatDelete()">确认删除</button>
     </div>
   </div>
 </div>
@@ -958,6 +1063,14 @@ const DEFAULT_ARTICLES = [
   }
 ];
 
+const DEFAULT_CATEGORIES = [
+  { name: '游戏策划', emoji: '🎮', color: ['#3a3a5c','#534AB7'] },
+  { name: 'AI探索',   emoji: '🤖', color: ['#d4516a','#993556'] },
+  { name: '生活随想', emoji: '🏞️', color: ['#1D9E75','#0F6E56'] },
+  { name: '产品思考', emoji: '🗺️', color: ['#BA7517','#854F0B'] },
+  { name: '学习记录', emoji: '📚', color: ['#185FA5','#0C447C'] },
+];
+
 const DEFAULT_SETTINGS = {
   blogName: '碎碎念',
   heroTitle: '记录思考、灵感\n与日常的杂货铺',
@@ -985,7 +1098,22 @@ const COLOR_PRESETS = [
 ];
 
 // ════════════════════════════════════════
-//  STORAGE
+//  CATEGORY STORAGE
+// ════════════════════════════════════════
+function loadCategories() {
+  try {
+    const raw = localStorage.getItem('blog_categories');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+}
+
+function saveCategories(arr) {
+  localStorage.setItem('blog_categories', JSON.stringify(arr));
+}
+
+// ════════════════════════════════════════
+//  ARTICLE STORAGE
 // ════════════════════════════════════════
 function loadArticles() {
   try {
@@ -1034,6 +1162,7 @@ function saveSettings() {
 // ════════════════════════════════════════
 let ARTICLES = loadArticles();
 let SETTINGS = loadSettings();
+let CATEGORIES = loadCategories();
 let currentTag = 'all';
 let currentPage = 'home';
 let prevPage = 'home';
@@ -1048,16 +1177,17 @@ function init() {
   buildTagBar();
   renderHome();
   renderArchive();
+  renderCategoryList();
   buildEmojiGrid();
   buildColorPresets();
   buildTagSuggestions();
+  buildCmEmojiGrid();
+  buildCmColorPresets();
   window.addEventListener('scroll', updateProgress);
-  // 快捷键
   document.addEventListener('keydown', e => {
     if (e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); openAdmin(); }
-    if (e.key === 'Escape') { closeAdmin(); closeSearch(e); }
+    if (e.key === 'Escape') { closeAdmin(); closeSearch(e); closeCategoryModal(); closeCatDelConfirm(); }
   });
-  // 今天日期默认
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
 }
 
@@ -1095,7 +1225,7 @@ function applySettings(s) {
 //  TAG BAR
 // ════════════════════════════════════════
 function buildTagBar() {
-  const tags = ['all', ...new Set(ARTICLES.map(a => a.tag))];
+  const tags = ['all', ...CATEGORIES.map(c => c.name)];
   const bar = document.getElementById('tag-bar');
   bar.innerHTML = '<span class="tag-bar-label">筛选：</span>';
   tags.forEach(tag => {
@@ -1326,6 +1456,7 @@ function showToast(msg) {
 function openAdmin() {
   document.getElementById('admin-overlay').classList.add('open');
   renderAdminArticleList();
+  renderCategoryList();
   loadSettingsForm();
 }
 
@@ -1481,6 +1612,193 @@ function saveArticle() {
   renderAdminArticleList();
 }
 
+// ════════════════════════════════════════
+//  CATEGORY MANAGEMENT
+// ════════════════════════════════════════
+let editingCategoryName = null; // null = creating, string = editing
+
+function renderCategoryList() {
+  const list = document.getElementById('cat-list');
+  const count = CATEGORIES.length;
+  document.getElementById('cat-count').textContent = count;
+  if (count === 0) {
+    list.innerHTML = '<div class="cat-empty">还没有分类，点击「新建分类」添加第一个分类吧！</div>';
+    return;
+  }
+  list.innerHTML = CATEGORIES.map(c => {
+    const catArticles = ARTICLES.filter(a => a.tag === c.name);
+    return `
+    <div class="cat-item">
+      <div class="cat-swatch" style="background:linear-gradient(135deg,${c.color[0]},${c.color[1]})">${c.emoji}</div>
+      <div class="cat-info">
+        <div class="cat-name">${c.name}</div>
+        <div class="cat-count">${catArticles.length} 篇文章</div>
+      </div>
+      <div class="cat-actions">
+        <button class="btn btn-sm btn-icon" title="编辑" onclick="openCategoryModal('${c.name}')">✏️</button>
+        <button class="btn btn-sm btn-icon btn-danger" title="删除" onclick="confirmDeleteCategory('${c.name}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCategoryModal(name) {
+  editingCategoryName = name || null;
+  const modal = document.getElementById('cat-modal-overlay');
+  modal.classList.add('open');
+
+  if (name) {
+    // editing
+    const cat = CATEGORIES.find(c => c.name === name);
+    document.getElementById('cat-modal-title').textContent = '✏️ 编辑分类';
+    document.getElementById('cm-name').value = cat.name;
+    document.getElementById('cm-emoji').value = cat.emoji;
+    document.getElementById('cm-color1').value = cat.color[0];
+    document.getElementById('cm-color2').value = cat.color[1];
+  } else {
+    // creating
+    document.getElementById('cat-modal-title').textContent = '＋ 新建分类';
+    document.getElementById('cm-name').value = '';
+    document.getElementById('cm-emoji').value = '';
+    document.getElementById('cm-color1').value = '#3a3a5c';
+    document.getElementById('cm-color2').value = '#534AB7';
+  }
+
+  // highlight selected emoji
+  const curEmoji = document.getElementById('cm-emoji').value;
+  document.querySelectorAll('#cm-emoji-grid .emoji-opt').forEach(e => {
+    e.classList.toggle('selected', e.dataset.emoji === curEmoji);
+  });
+  // highlight selected color preset
+  const c1 = document.getElementById('cm-color1').value;
+  const c2 = document.getElementById('cm-color2').value;
+  document.querySelectorAll('#cm-color-presets .color-preset').forEach(el => {
+    const [p0, p1] = COLOR_PRESETS[el.dataset.i] || [];
+    el.classList.toggle('selected', p0 === c1 && p1 === c2);
+  });
+
+  document.getElementById('cm-name').focus();
+}
+
+function closeCategoryModal() {
+  document.getElementById('cat-modal-overlay').classList.remove('open');
+  editingCategoryName = null;
+}
+
+function saveCategoryModal() {
+  const name = document.getElementById('cm-name').value.trim();
+  if (!name) { showToast('分类名称不能为空'); return; }
+
+  const exists = CATEGORIES.find(c => c.name !== editingCategoryName && c.name === name);
+  if (exists) { showToast('该分类名已存在'); return; }
+
+  const cat = {
+    name,
+    emoji: document.getElementById('cm-emoji').value.trim() || '📁',
+    color: [document.getElementById('cm-color1').value, document.getElementById('cm-color2').value]
+  };
+
+  if (editingCategoryName) {
+    // rename articles if name changed
+    if (editingCategoryName !== name) {
+      ARTICLES.forEach(a => { if (a.tag === editingCategoryName) a.tag = name; });
+      saveArticles(ARTICLES);
+    }
+    const idx = CATEGORIES.findIndex(c => c.name === editingCategoryName);
+    if (idx !== -1) CATEGORIES[idx] = cat;
+    showToast('分类已更新 ✓');
+  } else {
+    CATEGORIES.push(cat);
+    showToast('分类已创建 ✓');
+  }
+
+  saveCategories(CATEGORIES);
+  buildTagBar();
+  renderHome();
+  renderArchive();
+  renderCategoryList();
+  buildTagSuggestions();
+  closeCategoryModal();
+}
+
+function confirmDeleteCategory(name) {
+  const catArticles = ARTICLES.filter(a => a.tag === name);
+  const others = CATEGORIES.filter(c => c.name !== name);
+
+  document.getElementById('cd-title').textContent = '删除分类「' + name + '」';
+  const msg = document.getElementById('cd-msg');
+  if (catArticles.length === 0) {
+    msg.textContent = '该分类下暂无文章，直接删除。';
+    document.getElementById('cd-migrate-wrap').style.display = 'none';
+  } else {
+    msg.textContent = `该分类下有 ${catArticles.length} 篇文章，删除前请选择迁移目标：`;
+    document.getElementById('cd-migrate-wrap').style.display = 'block';
+    const sel = document.getElementById('cd-migrate-target');
+    sel.innerHTML = others.map(c => `<option value="${c.name}">${c.emoji} ${c.name}</option>`).join('');
+    if (others.length === 0) sel.innerHTML = '<option value="">（无其他分类，将删除文章）</option>';
+  }
+
+  _catDelName = name;
+  document.getElementById('cat-del-overlay').classList.add('open');
+}
+
+let _catDelName = null;
+
+function closeCatDelConfirm() {
+  document.getElementById('cat-del-overlay').classList.remove('open');
+  _catDelName = null;
+}
+
+function confirmCatDelete() {
+  if (!_catDelName) return;
+  const target = document.getElementById('cd-migrate-target').value;
+  if (target) {
+    ARTICLES.forEach(a => { if (a.tag === _catDelName) a.tag = target; });
+    saveArticles(ARTICLES);
+  } else {
+    // delete articles in this category
+    ARTICLES = ARTICLES.filter(a => a.tag !== _catDelName);
+    saveArticles(ARTICLES);
+  }
+  CATEGORIES = CATEGORIES.filter(c => c.name !== _catDelName);
+  saveCategories(CATEGORIES);
+  buildTagBar();
+  renderHome();
+  renderArchive();
+  renderCategoryList();
+  buildTagSuggestions();
+  closeCatDelConfirm();
+  showToast('分类已删除 ✓');
+}
+
+// ─── CM modal emoji/color picker ───
+function buildCmEmojiGrid() {
+  const grid = document.getElementById('cm-emoji-grid');
+  grid.innerHTML = EMOJI_OPTIONS.map(e => `
+    <div class="emoji-opt" data-emoji="${e}" onclick="selectCmEmoji('${e}',this)">${e}</div>`).join('');
+}
+
+function selectCmEmoji(emoji, el) {
+  document.getElementById('cm-emoji').value = emoji;
+  document.querySelectorAll('#cm-emoji-grid .emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function buildCmColorPresets() {
+  const wrap = document.getElementById('cm-color-presets');
+  wrap.innerHTML = COLOR_PRESETS.map((p, i) => `
+    <div class="color-preset" data-i="${i}" title="${p[0]} → ${p[1]}"
+      style="background:linear-gradient(135deg,${p[0]},${p[1]})"
+      onclick="selectCmColorPreset(${i},this)"></div>`).join('');
+}
+
+function selectCmColorPreset(i, el) {
+  document.getElementById('cm-color1').value = COLOR_PRESETS[i][0];
+  document.getElementById('cm-color2').value = COLOR_PRESETS[i][1];
+  document.querySelectorAll('#cm-color-presets .color-preset').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 // ─── 删除文章 ───
 function confirmDeleteArticle(id) {
   const a = ARTICLES.find(x => x.id === id);
@@ -1517,7 +1835,7 @@ function loadSettingsForm() {
 
 // ─── 备份导出 ───
 function exportData() {
-  const data = { articles: ARTICLES, settings: loadSettings(), exportedAt: new Date().toISOString() };
+  const data = { articles: ARTICLES, categories: CATEGORIES, settings: loadSettings(), exportedAt: new Date().toISOString() };
   downloadJson(data, 'blog-backup-' + new Date().toISOString().slice(0,10) + '.json');
   showToast('导出成功 ✓');
 }
@@ -1544,15 +1862,25 @@ function importData(input) {
       const data = JSON.parse(e.target.result);
       const imported = data.articles || data;
       if (!Array.isArray(imported)) { showToast('文件格式不正确'); return; }
-      // 合并，避免 id 冲突
+      // 合并文章，避免 id 冲突
       const existIds = new Set(ARTICLES.map(a => a.id));
-      let added = 0;
+      let addedArticles = 0;
       imported.forEach(a => {
-        if (!existIds.has(a.id)) { ARTICLES.push(a); existIds.add(a.id); added++; }
+        if (!existIds.has(a.id)) { ARTICLES.push(a); existIds.add(a.id); addedArticles++; }
       });
       saveArticles(ARTICLES);
+      // 合并分类
+      if (data.categories && Array.isArray(data.categories)) {
+        const existCatNames = new Set(CATEGORIES.map(c => c.name));
+        let addedCats = 0;
+        data.categories.forEach(c => {
+          if (!existCatNames.has(c.name)) { CATEGORIES.push(c); existCatNames.add(c.name); addedCats++; }
+        });
+        saveCategories(CATEGORIES);
+      }
       buildTagBar(); renderHome(); renderArchive(); renderAdminArticleList();
-      showToast(`已导入 ${added} 篇文章 ✓`);
+      renderCategoryList(); buildTagSuggestions();
+      showToast(`已导入 ${addedArticles} 篇文章 ✓`);
     } catch(err) { showToast('解析失败，请检查文件格式'); }
     input.value = '';
   };
@@ -1560,13 +1888,16 @@ function importData(input) {
 }
 
 function confirmReset() {
-  showConfirm('⚠️ 重置所有数据', '将删除所有文章和设置，恢复初始示例状态，不可撤销！', () => {
+  showConfirm('⚠️ 重置所有数据', '将删除所有文章、分类和设置，恢复初始示例状态，不可撤销！', () => {
     localStorage.removeItem('blog_articles');
     localStorage.removeItem('blog_settings');
+    localStorage.removeItem('blog_categories');
     ARTICLES = JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
     SETTINGS = Object.assign({}, DEFAULT_SETTINGS);
+    CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
     applySettings(SETTINGS);
-    buildTagBar(); renderHome(); renderArchive(); renderAdminArticleList();
+    buildTagBar(); renderHome(); renderArchive();
+    renderCategoryList(); renderAdminArticleList();
     showToast('已重置 ✓');
   });
 }
@@ -1600,7 +1931,7 @@ function selectColorPreset(i, el) {
 }
 
 function buildTagSuggestions() {
-  const tags = [...new Set(ARTICLES.map(a => a.tag))];
+  const tags = CATEGORIES.map(c => c.name);
   document.getElementById('tag-suggestions').innerHTML = tags.map(t => `<option value="${t}">`).join('');
 }
 
