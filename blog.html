@@ -1218,17 +1218,70 @@ function loadArticles() {
     const raw = localStorage.getItem('blog_articles');
     if (!raw) return JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
     const compressed = localStorage.getItem('_c');
+    let arr;
     try {
       if (compressed === '1') {
-        const json = gzipDecompress(raw);
-        return JSON.parse(json);
+        arr = JSON.parse(gzipDecompress(raw));
+      } else {
+        arr = JSON.parse(raw);
       }
-      return JSON.parse(raw);
     } catch(e) {
       console.warn('loadArticles 解析失败，使用默认文章', e);
+      return JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
     }
+    // 一次性迁移：提取旧文章 content 里的 base64 图片 → localStorage
+    const migrated = migrateArticlesImages(arr);
+    // 迁移后尝试重新保存（小了就不压缩）
+    try {
+      localStorage.setItem('blog_articles', JSON.stringify(migrated));
+      localStorage.setItem('_c', '0');
+    } catch(e) {
+      if (e.name === 'QuotaExceededError') {
+        // 迁移后仍爆，尝试 gzip
+        try {
+          const b64 = gzipCompress(JSON.stringify(migrated));
+          localStorage.setItem('blog_articles', b64);
+          localStorage.setItem('_c', '1');
+        } catch(e2) {
+          if (e2.name === 'QuotaExceededError') {
+            showToast('存储严重不足！请导出备份后执行数据重置');
+          }
+        }
+      }
+    }
+    return migrated;
   } catch(e) {}
   return JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
+}
+
+// 迁移旧文章：将 content 里的 base64 图片提取到 localStorage，替换为 [📷 id] 占位符
+function migrateArticlesImages(arr) {
+  if (!Array.isArray(arr)) return arr;
+  const MIGRATED_KEY = '_img_migrated';
+  try { if (localStorage.getItem(MIGRATED_KEY) === '1') return arr; } catch(e) {}
+  arr.forEach(article => {
+    if (!article || !article.content) return;
+    // 检查是否包含 base64 图片（未迁移的标志）
+    if (!article.content.includes('data:image/')) return;
+    const imgs = {};
+    let changed = false;
+    let counter = 0;
+    const newContent = article.content.replace(/<img src="(data:image\/[^"]+)"/g, (m, src) => {
+      const id = 'img_' + (article.id || 'unk') + '_' + counter++;
+      imgs[id] = src;
+      changed = true;
+      return `[📷 ${id}]`;
+    });
+    if (changed) {
+      article.content = newContent;
+      // 持久化图片到 localStorage
+      if (article.id) {
+        try { localStorage.setItem('blog_images_' + article.id, JSON.stringify(imgs)); } catch(e) {}
+      }
+    }
+  });
+  try { localStorage.setItem(MIGRATED_KEY, '1'); } catch(e) {}
+  return arr;
 }
 
 function saveArticles(arr) {
