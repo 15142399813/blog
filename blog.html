@@ -689,6 +689,7 @@
       <button class="admin-tab" onclick="switchAdminTab('write',this)">✍️ 写文章</button>
       <button class="admin-tab" onclick="switchAdminTab('categories',this)">🏷️ 分类管理</button>
       <button class="admin-tab" onclick="switchAdminTab('settings',this)">⚙️ 博客设置</button>
+      <button class="admin-tab" onclick="switchAdminTab('backup',this)">💾 备份</button>
     </div>
     <div class="admin-body">
 
@@ -2159,9 +2160,14 @@ function importData(input) {
 
 function confirmReset() {
   showConfirm('⚠️ 重置所有数据', '将删除所有文章、分类和设置，恢复初始示例状态，不可撤销！', () => {
+    // 清理所有存储
     localStorage.removeItem('blog_articles');
     localStorage.removeItem('blog_settings');
     localStorage.removeItem('blog_categories');
+    localStorage.removeItem('_c');
+    localStorage.removeItem('_img_migrated');
+    // 清理所有图片存储
+    Object.keys(localStorage).forEach(k => { if (k.startsWith('blog_images_')) localStorage.removeItem(k); });
     ARTICLES = JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
     SETTINGS = Object.assign({}, DEFAULT_SETTINGS);
     CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
