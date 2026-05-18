@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的博客</title>
+<script src="https://cdn.bootcdn.net/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1201,17 +1202,49 @@ function saveCategories(arr) {
 function loadArticles() {
   try {
     const raw = localStorage.getItem('blog_articles');
-    if (raw) return JSON.parse(raw);
+    const compressed = localStorage.getItem('_c');
+    if (raw) {
+      try {
+        if (compressed === '1') {
+          // 解压 gzip
+          const binary = atob(raw);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          const json = pako.inflate(bytes, { to: 'string' });
+          return JSON.parse(json);
+        }
+        return JSON.parse(raw);
+      } catch(e) {
+        console.warn('loadArticles 解压失败，使用默认文章', e);
+      }
+    }
   } catch(e) {}
   return JSON.parse(JSON.stringify(DEFAULT_ARTICLES));
 }
 
 function saveArticles(arr) {
   try {
-    localStorage.setItem('blog_articles', JSON.stringify(arr));
+    const json = JSON.stringify(arr);
+    // 先尝试直接存储（小文章）
+    try {
+      localStorage.setItem('blog_articles', json);
+      localStorage.setItem('_c', '0'); // 标记：0=未压缩
+    } catch(e) {
+      if (e.name !== 'QuotaExceededError') throw e;
+      // 超限，尝试 gzip 压缩（通常压到 1/3~1/5）
+      try {
+        const compressed = pako.deflate(json);
+        const b64 = btoa(String.fromCharCode.apply(null, compressed));
+        localStorage.setItem('blog_articles', b64);
+        localStorage.setItem('_c', '1'); // 标记：1=已压缩
+      } catch(e2) {
+        // 压缩后仍爆，抛原始错误
+        throw (e.name === 'QuotaExceededError') ? e : e2;
+      }
+    }
   } catch(e) {
     if (e.name === 'QuotaExceededError') {
-      showToast('存储空间不足！请减少图片数量或压缩图片大小');
+      showToast('存储空间严重不足！请导出备份后重置，或减少图片数量');
     }
     throw e;
   }
